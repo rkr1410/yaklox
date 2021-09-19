@@ -38,5 +38,5 @@ dependencies {
 
 application {
     // Define the main class for the application.
-    mainClass.set("net.rkr1410.yaklox.Yak")
+    mainClass.set("net.rkr1410.yaklox.YakKt")
 }
