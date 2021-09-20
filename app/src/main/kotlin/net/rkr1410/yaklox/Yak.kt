@@ -18,7 +18,7 @@ class Yak {
         }
 
         fun runCode(code: String) {
-            print("Source:\n$code")
+            println("Source:\n$code")
             val scanner = Scanner(code)
             val tokens = scanner.scanTokens()
             println(tokens)
@@ -46,5 +46,8 @@ class Yak {
    https://stackoverflow.com/questions/68216963/spring-boot-kotlin-gradle-error-main-method-not-found-in-class */
 fun main(args: Array<String>) {
     //Yak.main(args)
-    Yak.runCode("")
+    Yak.runCode("{(*")
+    //Yak.runCode("//asd\n")
+    //Yak.runCode("1.")
+    //Yak.runCode("fafa r")
 }

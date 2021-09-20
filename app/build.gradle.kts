@@ -32,8 +32,11 @@ dependencies {
     // Use the Kotlin test library.
     testImplementation("org.jetbrains.kotlin:kotlin-test")
 
-    // Use the Kotlin JUnit integration.
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.1.0")
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
 
 application {

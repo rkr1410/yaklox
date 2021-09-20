@@ -2,10 +2,18 @@ package net.rkr1410.yaklox
 
 data class Token(
     val type: TokenType,
-    val lexeme: String,
-    val literal: Any?,
+    val lexeme: String = "",
+    val literal: Any = NoLiteral,
     val line: Int
-)
+) {
+    companion object NoLiteral {
+        override fun toString(): String {
+            return "None"
+        }
+    }
+}
+
+
 
 enum class TokenType {
     // single-char lexemes
