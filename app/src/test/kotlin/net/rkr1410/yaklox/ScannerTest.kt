@@ -2,6 +2,7 @@ package net.rkr1410.yaklox
 
 import net.rkr1410.yaklox.TokenType.*
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertAll
 import org.junit.jupiter.params.ParameterizedTest
@@ -214,6 +215,33 @@ internal class ScannerTest {
         positionByToken.forEach {
             assertEquals(it.key.linePosition, it.value,
                 "Expected [${it.key}] to be at line position ${it.value}")
+        }
+    }
+
+    // Just test some code with random variations of symbols and operations allowed.
+    // Also, check the last parsed token is a EOF, and it's line corresponds to last
+    // line number in the file. This should more-or-less mean all tokens scanned
+    // successfully. A nonspecific test at best, but maybe it's going to catch some
+    // mistake one day? Who knows.
+    // Anyway, it *is* a requirement on the app, and as such deserves its own
+    // test, even if the net might be cast a bit too wide.
+    @Test
+    @DisplayName("Check a random file with some code has EOF token on the last file line")
+    fun testRandomScript() {
+        val fileName = "test-code.yak"
+        val resource = ScannerTest::class.java.getResource("/$fileName")
+        val src = resource?.readText()
+        if (src != null) {
+            val scanner = Scanner(src)
+            val tokens = scanner.scanTokens()
+
+            val fileLineCount = src.lines().size
+            val lastToken = tokens[tokens.size - 1]
+
+            assertEquals(lastToken.type, EOF)
+            assertEquals(lastToken.line, fileLineCount)
+        } else {
+            throw IllegalArgumentException("File test/resources/$fileName not found!")
         }
     }
 }

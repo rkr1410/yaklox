@@ -18,26 +18,10 @@ class Scanner(private val source: String) {
             scanToken()
         }
 
-        tokens.add(Token(type = EOF, line = line, linePosition = source.length + 1))
+        tokens.add(Token(type = EOF, line = line, linePosition = linePosition))
         return tokens
     }
-/*
-    // single-char lexemes
-    COMMA, DOT, MINUS, PLUS, SEMICOLON, SLASH, STAR,
 
-    // single, but possibly two-char
-    BANG, BANG_EQUAL, EQUAL, EQUAL_EQUAL, GREATER, GREATER_EQUAL,
-    LESS, LESS_EQUAL,
-
-    // literals
-    IDENTIFIER, STRING, NUMBER,
-
-    // keywords
-    AND, CLASS, ELSE, FALSE, FUN, FOR, IF, NIL, OR,
-    PRINT, RETURN, SUPER, THIS, TRUE, VAR, WHILE,
-
-    EOF
- */
     private fun scanToken() {
         when (advance()) {
             '(' -> addToken(LEFT_PAREN)
@@ -72,7 +56,7 @@ class Scanner(private val source: String) {
         }
 
         // Consume closing quote
-        if (!isEof()) advance() else Yak.report(line, linePosition, "Expecting \"")
+        if (!isEof()) advance() else Yak.reportError(line, linePosition, "Expecting \"")
 
         val lexeme = currentLexeme()
         val literal = lexeme.substring(1, lexeme.length - 1)

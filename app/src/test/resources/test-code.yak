@@ -1,0 +1,36 @@
+fun testFunction() {
+    var one = 1;
+    var zero = 0.0;
+
+    if (one == zero) {
+        print "well..."
+        return -1;
+    } else {
+        print "ok";
+        return 1;
+    }
+}
+
+fun loopTest() {
+    var counter = 0;
+    while (counter < 10) {
+        counter = counter + 1;
+    }
+}
+
+// Some arithmetic
+var number = (((2 + 2 - 3) / 4) * 5)
+print number == 1
+print number != 1
+print number > 1
+print number >= 1
+print number < 1
+print number <= 1
+var array = [1, 2, number]
+var aBoolean = false
+print aBoolean or true
+print aBoolean and true
+print !aBoolean
+print nil
+
+

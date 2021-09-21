@@ -6,6 +6,7 @@ import kotlin.system.exitProcess
 
 class Yak {
     companion object {
+        var hadError = false
         var err: PrintStream = System.err
 
         /* KOTLIN
@@ -23,13 +24,17 @@ class Yak {
 
         fun runCode(code: String) {
             println("Source:\n$code")
+            // scan
             val scanner = Scanner(code)
             val tokens = scanner.scanTokens()
-            println(tokens)
+            if (hadError) return
+            // parse
+            if (hadError) return
+            // interpret
+            tokens.forEach(::println)
         }
 
         private fun runScript(scriptName: String) {
-
         }
 
         private fun runPrompt() {
@@ -41,8 +46,9 @@ class Yak {
             exitProcess(EX_USAGE)
         }
 
-        fun report(line: Int, position: Int?, message: String) {
+        fun reportError(line: Int, position: Int?, message: String) {
             err.println("[$line:$position] $message")
+            hadError = true
         }
 
         fun setNewErrorByteArrayStream(): ByteArrayOutputStream {
