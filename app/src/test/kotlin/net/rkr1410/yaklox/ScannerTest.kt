@@ -36,17 +36,62 @@ internal class ScannerTest {
 
         @JvmStatic
         fun numberSource() = listOf(
-            Arguments.of("Zero", "0", 0.toDouble()),
-            Arguments.of("Zero with zero decimal part", "0.0", 0.0),
-            Arguments.of("Zero with decimal part", "0.222", 0.222),
-            Arguments.of("No decimal part number", "1234", 1234.toDouble()),
-            Arguments.of("Number with decimal part", "1234.997", 1234.997),
+            Arguments.of("0", 0.toDouble(), "Zero"),
+            Arguments.of("0.0", 0.0, "Zero with zero decimal part"),
+            Arguments.of("0.222", 0.222, "Zero with decimal part"),
+            Arguments.of("1234", 1234.toDouble(), "No decimal part number"),
+            Arguments.of("1234.997", 1234.997, "Number with decimal part"),
+        )
+
+        @JvmStatic
+        fun keywordSource() = listOf(
+            Arguments.of("and", AND),
+            Arguments.of("class", CLASS),
+            Arguments.of("else", ELSE),
+            Arguments.of("false", FALSE),
+            Arguments.of("for", FOR),
+            Arguments.of("fun", FUN),
+            Arguments.of("if", IF),
+            Arguments.of("nil", NIL),
+            Arguments.of("or", OR),
+            Arguments.of("return", RETURN),
+            Arguments.of("super", SUPER),
+            Arguments.of("this", THIS),
+            Arguments.of("true", TRUE),
+            Arguments.of("var", VAR),
+            Arguments.of("while", WHILE),
+        )
+
+        @JvmStatic
+        fun identifierSource() = listOf(
+            Arguments.of("variableName"),
+            Arguments.of("varName"),
+            Arguments.of("v"),
+            Arguments.of("v_"),
+            Arguments.of("_v"),
+            Arguments.of("_v_"),
+            Arguments.of("v1"),
+            Arguments.of("v_1"),
+            Arguments.of("v191something_02y"),
+            Arguments.of("reallySeriouslyAbsurdlyAndDefinitivelyVeryLongActuallyJustAboutTooLongIfIAmToBe" +
+                    "CompletelyFrankWithYouAlthoughTooLongAsInByMeasureOfWhatMakesSenseForAHumanReadableVariableName" +
+                    "AndNotTooLongAsInMakingTheCompilationFailAsInFactThisShouldPassCompilationVariableName"),
+        )
+
+        @JvmStatic
+        fun stringSource() = listOf(
+            Arguments.of("\"\"", "Empty string"),
+            Arguments.of("\"b\"", "Single letter string"),
+            Arguments.of("\"this\"", "Single word string"),
+            Arguments.of("\"this is a test string\"", "Multiple words string"),
+            Arguments.of("\"this is a test string\n\"", "Two-line string"),
+            Arguments.of("\"this is a test string\nThe second line\nThird line\"", "Multiple-line string"),
         )
     }
 
     @ParameterizedTest(name = "{0} produces a NUMBER token")
     @MethodSource("numberSource")
-    fun numberTokenTest(desc: String, codeAndLexeme: String, literal: Double) {
+    fun testNumberTokens(codeAndLexeme: String, literal: Double) {
         assertScannerFor(codeAndLexeme)
             .producesFirstTokenOfType(NUMBER)
             .withLexeme(codeAndLexeme)
@@ -57,7 +102,7 @@ internal class ScannerTest {
 
     @ParameterizedTest(name = "{0} produces a {1} token")
     @MethodSource("singleTokenSource")
-    fun singleTokenTest(codeAndLexeme: String, tokenType: TokenType) {
+    fun testSingleTokens(codeAndLexeme: String, tokenType: TokenType) {
         assertScannerFor(codeAndLexeme)
             .producesFirstTokenOfType(tokenType)
             .withLexeme(codeAndLexeme)
@@ -65,6 +110,71 @@ internal class ScannerTest {
             .atLine(1)
             .followedByEofAtTheSameLine()
     }
+
+    @ParameterizedTest(name = "{0} produces a {1} keyword token")
+    @MethodSource("keywordSource")
+    fun testKeywordTokens(codeAndLexeme: String, tokenType: TokenType) {
+        assertScannerFor(codeAndLexeme)
+            .producesFirstTokenOfType(tokenType)
+            .withLexeme(codeAndLexeme)
+            .withNoLiteral()
+            .atLine(1)
+            .followedByEofAtTheSameLine()
+    }
+
+    @ParameterizedTest(name = "{0} produces an IDENTIFIER token")
+    @MethodSource("identifierSource")
+    fun testIdentifierTokens(codeAndLexeme: String) {
+        assertScannerFor(codeAndLexeme)
+            .producesFirstTokenOfType(IDENTIFIER)
+            .withLexeme(codeAndLexeme)
+            .withNoLiteral()
+            .atLine(1)
+            .followedByEofAtTheSameLine()
+    }
+
+    @Test
+    fun testme() {
+        assertScannerFor("\"abc\"")
+            .producesFirstTokenOfType(STRING)
+            .withLexeme("\"abc\"")
+            .withLiteral("\"abc\"".substring(1, "\"abc\"".length - 1))
+            .atLine(1)
+            .followedByEofAtTheSameLine()
+    }
+
+    @ParameterizedTest(name = "String test: {1}")
+    @MethodSource("stringSource")
+    fun testValidString(stringValue: String, desc: String) {
+        val newLIneCount = stringValue.count { it == '\n' } + 1
+        assertScannerFor(stringValue)
+            .producesFirstTokenOfType(STRING)
+            .withLexeme(stringValue)
+            .withLiteral(stringValue.substring(1, stringValue.length - 1))
+            .atLine(newLIneCount)
+            .followedByEofAtTheSameLine()
+    }
+
+    @Test
+    fun testInvalidSingleLineString() {
+        val errBaos = Yak.setNewErrorByteArrayStream()
+        val scanner = Scanner("\"missing closing quote")
+        scanner.scanTokens()
+
+        val reportedError = String(errBaos.toByteArray())
+        assertEquals("[1:23] Expecting \"\n", reportedError)
+    }
+
+    @Test
+    fun testInvalidMultilineString() {
+        val errBaos = Yak.setNewErrorByteArrayStream()
+        val scanner = Scanner("\"missing closing quote\nonline number 3\n?")
+        scanner.scanTokens()
+
+        val reportedError = String(errBaos.toByteArray())
+        assertEquals("[3:2] Expecting \"\n", reportedError)
+    }
+
 
     @Test
     fun `Newlines increase line number`() {

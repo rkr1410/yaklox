@@ -1,9 +1,13 @@
 package net.rkr1410.yaklox
 
+import java.io.ByteArrayOutputStream
+import java.io.PrintStream
 import kotlin.system.exitProcess
 
 class Yak {
     companion object {
+        var err: PrintStream = System.err
+
         /* KOTLIN
            Apparently @JvmStatic is needed by Java if I want to call this prefixed just by Yak,
            otherwise need Yak.Companion (when unnamed, the companion object goes by default 'Companion' name) */
@@ -36,6 +40,17 @@ class Yak {
             println("Usage yak [script]")
             exitProcess(EX_USAGE)
         }
+
+        fun report(line: Int, position: Int?, message: String) {
+            err.println("[$line:$position] $message")
+        }
+
+        fun setNewErrorByteArrayStream(): ByteArrayOutputStream {
+            val baos = ByteArrayOutputStream()
+            val newPrintStream = PrintStream(baos)
+            this.err = newPrintStream
+            return baos
+        }
     }
 }
 
@@ -46,8 +61,9 @@ class Yak {
    https://stackoverflow.com/questions/68216963/spring-boot-kotlin-gradle-error-main-method-not-found-in-class */
 fun main(args: Array<String>) {
     //Yak.main(args)
-    Yak.runCode("{(*")
+//    Yak.runCode("{(*")
     //Yak.runCode("//asd\n")
+    //Yak.runCode("\"a\nz")
     //Yak.runCode("1.")
     //Yak.runCode("fafa r")
 }

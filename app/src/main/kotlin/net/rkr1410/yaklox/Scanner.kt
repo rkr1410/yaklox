@@ -7,6 +7,7 @@ class Scanner(private val source: String) {
     private var start: Int = 0
     private var current: Int = 0
     private var line: Int = 1
+    private var linePosition: Int = 1
     private val length = source.length
     private val tokens = mutableListOf<Token>()
 
@@ -54,16 +55,40 @@ class Scanner(private val source: String) {
             '=' -> addIfNextCharIsEquals(EQUAL_EQUAL, EQUAL)
             '<' -> addIfNextCharIsEquals(LESS_EQUAL, LESS)
             '>' -> addIfNextCharIsEquals(GREATER_EQUAL, GREATER)
-            '\n' -> line++
+            '"' -> string()
+            '\n' -> increaseLineNumber()
             ' ', '\t', '\r' -> {}
             else -> when {
-//                c.isAlpha() -> identifier()
+                currentChar().isAlpha() -> identifier()
                 currentChar().isDigit() -> number()
             }
         }
     }
 
-    fun number() {
+    private fun string() {
+        while (!isEof() && !nextCharIs('"')) {
+            if (nextCharIs('\n')) increaseLineNumber()
+            advance()
+        }
+        if (!isEof()) {
+            advance() // 'eat' closing "
+        } else {
+            Yak.report(line, linePosition, "Expecting \"")
+        }
+
+        val lexeme = currentLexeme()
+        addToken(STRING, lexeme.substring(1, lexeme.length -1), lexeme)
+    }
+
+    private fun identifier() {
+        while (!isEof() && nextCharIsIdChar()) advance()
+
+        val lexeme = currentLexeme()
+        val tokenType = tokenTypeForLexeme(lexeme)
+        addToken(tokenType = tokenType, lexeme = lexeme)
+    }
+
+    private fun number() {
         while (!isEof() && nextCharIsDigit()) advance()
         if (nextCharIs('.')) advance()
         while (!isEof() && nextCharIsDigit()) advance()
@@ -75,13 +100,11 @@ class Scanner(private val source: String) {
 
     private fun singleLineComment() {
         while (!isEof() && !nextCharIs('\n')) advance()
-        System.err.println(currentLexeme())
     }
 
     private fun addIfNextCharIsEquals(typeIfNextCharIsEquals: TokenType, typeOtherwise: TokenType) {
         if (nextCharIs('=')) {
-            advance()
-            addToken(typeIfNextCharIsEquals)
+            advance().also { addToken(typeIfNextCharIsEquals) }
         } else {
             addToken(typeOtherwise)
         }
@@ -97,8 +120,12 @@ class Scanner(private val source: String) {
     private fun currentLexeme() = source.substring(start, current)
     private fun nextCharIs(c: Char) = if (isEof()) false else c == source[current]
     private fun nextCharIsDigit() = if (isEof()) false else source[current].isDigit()
-    private fun advance() = source[current++]
+    private fun nextCharIsIdChar() = if (isEof()) false else source[current].isAlphaNumeric()
+    private fun advance() = source[current++].also { linePosition++ }
+    private fun increaseLineNumber() = line++.also { linePosition = 0 }
     private fun currentChar() = source[current - 1]
+    private fun Char.isAlpha() = this in 'a'..'z' || this in 'A'..'Z' || this == '_'
+    private fun Char.isAlphaNumeric() = this.isDigit() || this.isAlpha()
 
 
     companion object {
