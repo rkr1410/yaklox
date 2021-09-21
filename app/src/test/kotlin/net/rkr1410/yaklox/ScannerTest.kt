@@ -133,16 +133,6 @@ internal class ScannerTest {
             .followedByEofAtTheSameLine()
     }
 
-    @Test
-    fun testme() {
-        assertScannerFor("\"abc\"")
-            .producesFirstTokenOfType(STRING)
-            .withLexeme("\"abc\"")
-            .withLiteral("\"abc\"".substring(1, "\"abc\"".length - 1))
-            .atLine(1)
-            .followedByEofAtTheSameLine()
-    }
-
     @ParameterizedTest(name = "String test: {1}")
     @MethodSource("stringSource")
     fun testValidString(stringValue: String, desc: String) {
@@ -188,7 +178,7 @@ internal class ScannerTest {
 
     @Test
     fun `Space, tabs and carriage returns are ignored`() {
-        assertScannerFor("\t\t  \r\r  *")
+        assertScannerFor("\t\t  \r\r  *            ")
             .producesFirstTokenOfType(STAR)
             .withLexeme("*")
             .withNoLiteral()
@@ -197,14 +187,34 @@ internal class ScannerTest {
     }
 
     @Test
-    fun `single line comments are ignored`() {
+    fun `Single line comments are ignored`() {
         assertScannerFor("  // this is first comment line\n  * // another comment\n  // and another")
             .producesFirstTokenOfType(STAR)
             .withLexeme("*")
             .withNoLiteral()
             .atLine(2)
             .followedByEofAtLine(3)
+    }
 
+    @Test
+    fun testTokenLinePosition() {
+        val src = "var abc = 5;\n" +
+                "abc = abc + 5 / 2; //a comment\n" +
+                "//another comment\n" +
+                "var txt = \"here, have a string\";"
+        val positions = listOf(
+            1, 5, 9, 11, 12,
+            1, 5, 7, 11, 13, 15, 17, 18,
+            //comment line has no token positions
+            1, 5, 9, 11, 32
+        )
+        val scanner = Scanner(src)
+
+        val positionByToken = scanner.scanTokens().zip(positions).toMap()
+        positionByToken.forEach {
+            assertEquals(it.key.linePosition, it.value,
+                "Expected [${it.key}] to be at line position ${it.value}")
+        }
     }
 }
 
@@ -247,13 +257,26 @@ class FirstTokenAndEofAsserter(private val scanner: Scanner, private val type: T
         tokenLine ?: throw IllegalStateException("Token line must not be null")
         lexeme ?: throw IllegalStateException("Lexeme must not be null")
 
-        val expectedToken = Token(type, lexeme!!, literal ?: Token.NoLiteral, tokenLine!!)
-        val expectedEofToken = Token(EOF, "", Token.NoLiteral, eofLine ?: tokenLine!!)
+        // Fake line position - it's too much hassle to require providing it each single test. There are separate tests
+        // to check just the line position
+        val expectedToken = Token(type, lexeme!!, literal ?: Token.NoLiteral, tokenLine!!, 1)
+        val expectedEofToken = Token(EOF, "", Token.NoLiteral, eofLine ?: tokenLine!!, 1)
         val tokens = scanner.scanTokens()
+        val actualToken = tokens[0]
+        val actualEofToken = tokens[1]
 
         assertAll("tokens",
-            { assertEquals(expectedToken, tokens[0]) },
-            { assertEquals(expectedEofToken, tokens[1]) }
+            { assertTokenWithoutLinePosition(expectedToken, actualToken) },
+            { assertTokenWithoutLinePosition(expectedEofToken, actualEofToken) }
+        )
+    }
+
+    private fun assertTokenWithoutLinePosition(expectedToken: Token, actualToken: Token) {
+        assertAll("tokens",
+            { assertEquals(expectedToken.type, actualToken.type) },
+            { assertEquals(expectedToken.lexeme, actualToken.lexeme) },
+            { assertEquals(expectedToken.literal, actualToken.literal) },
+            { assertEquals(expectedToken.line, actualToken.line) }
         )
     }
 }

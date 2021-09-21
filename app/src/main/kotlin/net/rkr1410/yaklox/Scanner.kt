@@ -18,7 +18,7 @@ class Scanner(private val source: String) {
             scanToken()
         }
 
-        tokens.add(Token(type = EOF, line = line))
+        tokens.add(Token(type = EOF, line = line, linePosition = source.length + 1))
         return tokens
     }
 /*
@@ -70,14 +70,13 @@ class Scanner(private val source: String) {
             if (nextCharIs('\n')) increaseLineNumber()
             advance()
         }
-        if (!isEof()) {
-            advance() // 'eat' closing "
-        } else {
-            Yak.report(line, linePosition, "Expecting \"")
-        }
+
+        // Consume closing quote
+        if (!isEof()) advance() else Yak.report(line, linePosition, "Expecting \"")
 
         val lexeme = currentLexeme()
-        addToken(STRING, lexeme.substring(1, lexeme.length -1), lexeme)
+        val literal = lexeme.substring(1, lexeme.length - 1)
+        addToken(STRING, literal, lexeme)
     }
 
     private fun identifier() {
@@ -112,7 +111,7 @@ class Scanner(private val source: String) {
 
     private fun addToken(tokenType: TokenType, literal: Any = Token.NoLiteral, lexeme: String? = null) {
         val lex = lexeme ?: currentLexeme()
-        val token = Token(tokenType, lex, literal, line)
+        val token = Token(tokenType, lex, literal, line, linePosition - lex.length)
         tokens.add(token)
     }
 
@@ -122,7 +121,7 @@ class Scanner(private val source: String) {
     private fun nextCharIsDigit() = if (isEof()) false else source[current].isDigit()
     private fun nextCharIsIdChar() = if (isEof()) false else source[current].isAlphaNumeric()
     private fun advance() = source[current++].also { linePosition++ }
-    private fun increaseLineNumber() = line++.also { linePosition = 0 }
+    private fun increaseLineNumber() = line++.also { linePosition = 1 }
     private fun currentChar() = source[current - 1]
     private fun Char.isAlpha() = this in 'a'..'z' || this in 'A'..'Z' || this == '_'
     private fun Char.isAlphaNumeric() = this.isDigit() || this.isAlpha()

@@ -4,12 +4,17 @@ data class Token(
     val type: TokenType,
     val lexeme: String = "",
     val literal: Any = NoLiteral,
-    val line: Int
+    val line: Int,
+    val linePosition: Int
 ) {
     companion object NoLiteral {
         override fun toString(): String {
             return "None"
         }
+    }
+
+    override fun toString(): String {
+        return "$type $lexeme $literal $line $linePosition"
     }
 }
 
