@@ -45,6 +45,7 @@ class Scanner(private val source: String) {
             else -> when {
                 currentChar().isAlpha() -> identifier()
                 currentChar().isDigit() -> number()
+                else -> error("Unexpected character '${currentChar()}'")
             }
         }
     }
@@ -56,7 +57,7 @@ class Scanner(private val source: String) {
         }
 
         // Consume closing quote
-        if (!isEof()) advance() else Yak.reportError(line, linePosition, "Expecting \"")
+        if (!isEof()) advance() else error("Expecting \"").also { return }
 
         val lexeme = currentLexeme()
         val literal = lexeme.substring(1, lexeme.length - 1)
@@ -109,7 +110,7 @@ class Scanner(private val source: String) {
     private fun currentChar() = source[current - 1]
     private fun Char.isAlpha() = this in 'a'..'z' || this in 'A'..'Z' || this == '_'
     private fun Char.isAlphaNumeric() = this.isDigit() || this.isAlpha()
-
+    private fun error(msg: String) = Yak.reportError(line, linePosition - 1, msg)
 
     companion object {
         private val keywords = mapOf(

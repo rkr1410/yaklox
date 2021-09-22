@@ -147,27 +147,6 @@ internal class ScannerTest {
     }
 
     @Test
-    fun testInvalidSingleLineString() {
-        val errBaos = Yak.setNewErrorByteArrayStream()
-        val scanner = Scanner("\"missing closing quote")
-        scanner.scanTokens()
-
-        val reportedError = String(errBaos.toByteArray())
-        assertEquals("[1:23] Expecting \"\n", reportedError)
-    }
-
-    @Test
-    fun testInvalidMultilineString() {
-        val errBaos = Yak.setNewErrorByteArrayStream()
-        val scanner = Scanner("\"missing closing quote\nonline number 3\n?")
-        scanner.scanTokens()
-
-        val reportedError = String(errBaos.toByteArray())
-        assertEquals("[3:2] Expecting \"\n", reportedError)
-    }
-
-
-    @Test
     fun `Newlines increase line number`() {
         assertScannerFor("\n\n\n*\n\n")
             .producesFirstTokenOfType(STAR)
@@ -198,6 +177,26 @@ internal class ScannerTest {
     }
 
     @Test
+    fun testInvalidEmptyString() {
+        assertCodeGivesError("\"", "[1:1] Expecting \"")
+    }
+
+    @Test
+    fun testInvalidSingleLineString() {
+        assertCodeGivesError("\"missing closing quote", "[1:22] Expecting \"")
+    }
+
+    @Test
+    fun testInvalidMultilineString() {
+        assertCodeGivesError("\"missing closing quote\nonline number 3\n?z", "[3:3] Expecting \"")
+    }
+
+    @Test
+    fun testUnrecognizedCharacter() {
+        assertCodeGivesError("~", "[1:1] Unexpected character '~'")
+    }
+
+    @Test
     fun testTokenLinePosition() {
         val src = "var abc = 5;\n" +
                 "abc = abc + 5 / 2; //a comment\n" +
@@ -213,7 +212,7 @@ internal class ScannerTest {
 
         val positionByToken = scanner.scanTokens().zip(positions).toMap()
         positionByToken.forEach {
-            assertEquals(it.key.linePosition, it.value,
+            assertEquals(it.value, it.key.linePosition,
                 "Expected [${it.key}] to be at line position ${it.value}")
         }
     }
@@ -226,7 +225,7 @@ internal class ScannerTest {
     // Anyway, it *is* a requirement on the app, and as such deserves its own
     // test, even if the net might be cast a bit too wide.
     @Test
-    @DisplayName("Check a random file with some code has EOF token on the last file line")
+    @DisplayName("Regression scan: a file with some code has EOF token on the last file line")
     fun testRandomScript() {
         val fileName = "test-code.yak"
         val resource = ScannerTest::class.java.getResource("/$fileName")
@@ -244,6 +243,15 @@ internal class ScannerTest {
             throw IllegalArgumentException("File test/resources/$fileName not found!")
         }
     }
+}
+
+fun assertCodeGivesError(code: String, exoectedError: String) {
+    val errBaos = Yak.setNewErrorByteArrayStream()
+    val scanner = Scanner(code)
+    scanner.scanTokens()
+
+    val reportedError = String(errBaos.toByteArray()).filter { it != '\n' }
+    assertEquals(exoectedError, reportedError)
 }
 
 fun assertScannerFor(source: String) = ScannerAsserter(source)
