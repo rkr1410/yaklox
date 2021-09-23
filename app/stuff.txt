@@ -1,0 +1,14 @@
+//todo immediate todos:
+- sort out field access modifiers across classes
+
+support for /* */ C-style comments, possibly with nesting
+pattern matching
+everything an object (e.g. numbers, boolean literals)
+pascal thingy error handling
+how would BigDecimals do instead of Doubles for numbers? how about my own floating point arithmetic package?
+implement c-style comma operator: https://en.wikipedia.org/wiki/Comma_operator#Examples
+implement c-style ternary operator / make if an expression
+
+check out what reverse polish notation is about (write a simple calculator?)
+
+DO THE CHALLENGES FROM THE BOOK
