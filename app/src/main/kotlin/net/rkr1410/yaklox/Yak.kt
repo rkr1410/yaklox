@@ -1,5 +1,6 @@
 package net.rkr1410.yaklox
 
+import net.rkr1410.yaklox.tools.ExprPrinter
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
 import kotlin.system.exitProcess
@@ -28,10 +29,18 @@ class Yak {
             val scanner = Scanner(code)
             val tokens = scanner.scanTokens()
             if (hadError) return
-            // parse
+            val parser = Parser(tokens)
+            var expr: Expression? = null
+            try {
+                expr = parser.parse()
+            } catch (e: ParseError) {
+                //System.err.println("Parse error")
+            }
             if (hadError) return
+            val printer = ExprPrinter()
+            expr?.run(printer::visit).let(::println)
+            //ExprPrinter().visit(expr).let(::println)
             // interpret
-            tokens.forEach(::println)
         }
 
         private fun runScript(scriptName: String) {
@@ -44,6 +53,10 @@ class Yak {
         private fun printUsageAndExit() {
             println("Usage yak [script]")
             exitProcess(EX_USAGE)
+        }
+
+        fun reportError(token: Token, message: String) {
+            reportError(token.line, token.linePosition, message)
         }
 
         fun reportError(line: Int, position: Int?, message: String) {
