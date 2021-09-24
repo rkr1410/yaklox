@@ -69,7 +69,8 @@ class Scanner(private val source: String) {
 
         val lexeme = currentLexeme()
         val tokenType = tokenTypeForLexeme(lexeme)
-        addToken(tokenType = tokenType, lexeme = lexeme)
+        val literal = literalFor(tokenType) ?: Token.NoLiteral
+        addToken(tokenType, literal, lexeme)
     }
 
     private fun number() {
@@ -132,5 +133,12 @@ class Scanner(private val source: String) {
         )
 
         fun tokenTypeForLexeme(literal: String) = keywords.getOrDefault(literal, IDENTIFIER)
+        fun literalFor(type: TokenType): Any? {
+            return when(type) {
+                TRUE -> true
+                FALSE -> false
+                else -> null
+            }
+        }
     }
 }
