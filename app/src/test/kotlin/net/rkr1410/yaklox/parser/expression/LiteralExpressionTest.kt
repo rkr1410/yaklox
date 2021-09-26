@@ -9,7 +9,12 @@ import org.junit.jupiter.params.provider.MethodSource
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 
-class LiteralsTest : ExpressionTestBase() {
+/*
+    I think literals are as far as I'm going to go with tests using visitors.
+    It's tests - so the point is to test, not to hold on tightly to 'best practices',
+    so I think I'm just going to use reflection as soon as I'm done with testing literals.
+ */
+class LiteralExpressionTest : ExpressionTestBase() {
 
     @ParameterizedTest(name = "Simple number expression parses successfully: {0} -> {1}")
     @DisplayName(value = "Simple number expression parses successfully")
@@ -56,10 +61,9 @@ class LiteralsTest : ExpressionTestBase() {
     }
 
     @Test
-    fun `nil is a null literal`() {
+    fun `nil is a NoLiteral literal`() {
         val expr = expression("nil")
         assertIs<Expression.Literal>(expr)
         assertEquals(Token.NoLiteral, expr.accept(literalValueVisitor))
     }
-
 }

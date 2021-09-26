@@ -27,7 +27,6 @@ internal class ScannerTest {
         assertScannerFor(codeAndLexeme)
             .producesFirstTokenOfType(tokenType)
             .withLexeme(codeAndLexeme)
-            .withNoLiteral()
             .atLine(1)
             .followedByEofAtTheSameLine()
     }
@@ -38,7 +37,6 @@ internal class ScannerTest {
         assertScannerFor(codeAndLexeme)
             .producesFirstTokenOfType(tokenType)
             .withLexeme(codeAndLexeme)
-            .withNoLiteral()
             .atLine(1)
             .followedByEofAtTheSameLine()
     }
@@ -49,7 +47,6 @@ internal class ScannerTest {
         assertScannerFor(codeAndLexeme)
             .producesFirstTokenOfType(IDENTIFIER)
             .withLexeme(codeAndLexeme)
-            .withNoLiteral()
             .atLine(1)
             .followedByEofAtTheSameLine()
     }
@@ -71,7 +68,6 @@ internal class ScannerTest {
         assertScannerFor("\n\n\n*\n\n")
             .producesFirstTokenOfType(STAR)
             .withLexeme("*")
-            .withNoLiteral()
             .atLine(4)
             .followedByEofAtLine(6)
     }
@@ -81,7 +77,6 @@ internal class ScannerTest {
         assertScannerFor("\t\t  \r\r  *            ")
             .producesFirstTokenOfType(STAR)
             .withLexeme("*")
-            .withNoLiteral()
             .atLine(1)
             .followedByEofAtTheSameLine()
     }
@@ -91,7 +86,6 @@ internal class ScannerTest {
         assertScannerFor("  // this is first comment line\n  * // another comment\n  // and another")
             .producesFirstTokenOfType(STAR)
             .withLexeme("*")
-            .withNoLiteral()
             .atLine(2)
             .followedByEofAtLine(3)
     }
@@ -177,23 +171,22 @@ class FirstTokenAndEofAsserter(private val scanner: Scanner, private val type: T
     private var lexeme: String? = null
     private var literal: Any? = null
     private var tokenLine: Int? = null
+    var checks = mutableMapOf( "lexeme" to false, "literal" to false, "line" to false )
 
     fun withLexeme(lexeme: String): FirstTokenAndEofAsserter {
+        checks["lexeme"] = true
         this.lexeme = lexeme
         return this
     }
 
     fun withLiteral(literal: Any): FirstTokenAndEofAsserter {
+        checks["literal"] = true
         this.literal = literal
         return this
     }
 
-    fun withNoLiteral(): FirstTokenAndEofAsserter {
-        this.literal = null
-        return this
-    }
-
     fun atLine(line: Int): FirstTokenAndEofAsserter {
+        checks["line"] = true
         this.tokenLine = line
         return this
     }
@@ -201,6 +194,8 @@ class FirstTokenAndEofAsserter(private val scanner: Scanner, private val type: T
     fun followedByEofAtTheSameLine() {
         followedByEofAtLine(tokenLine)
     }
+
+    fun shouldCheck(type: String) = checks[type] ?: false
 
     fun followedByEofAtLine(eofLine: Int?) {
         tokenLine ?: throw IllegalStateException("Token line must not be null")
@@ -223,9 +218,9 @@ class FirstTokenAndEofAsserter(private val scanner: Scanner, private val type: T
     private fun assertTokenWithoutLinePosition(expectedToken: Token, actualToken: Token) {
         assertAll("tokens",
             { assertEquals(expectedToken.type, actualToken.type) },
-            { assertEquals(expectedToken.lexeme, actualToken.lexeme) },
-            { assertEquals(expectedToken.literal, actualToken.literal) },
-            { assertEquals(expectedToken.line, actualToken.line) }
+            { if (shouldCheck("lexeme"))  assertEquals(expectedToken.lexeme, actualToken.lexeme) },
+            { if (shouldCheck("literal")) assertEquals(expectedToken.literal, actualToken.literal) },
+            { if (shouldCheck("line"))    assertEquals(expectedToken.line, actualToken.line) }
         )
     }
 }

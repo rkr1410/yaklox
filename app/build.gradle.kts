@@ -31,7 +31,7 @@ dependencies {
 
     // Use the Kotlin test library.
     testImplementation("org.jetbrains.kotlin:kotlin-test")
-
+    testImplementation("org.jetbrains.kotlin:kotlin-reflect:1.5.31")
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.1.0")
 }
 
