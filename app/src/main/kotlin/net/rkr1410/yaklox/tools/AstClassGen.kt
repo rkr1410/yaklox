@@ -26,7 +26,7 @@ internal class AstClassGen(private val outputDir: String, private val baseName: 
         """
             |    data class ${td.className}(
                     |${each("${tab2()}val " to ",\n", td.properties)}
-            |    ): Expression() 
+            |    ): $baseName() 
             |
         """.trimMargin()
 }
@@ -44,12 +44,18 @@ class TypeDef(val className: String, val properties: List<String>) {
 fun main() {
     val dir = "app/src/main/kotlin/net/rkr1410/yaklox/"
     //val dir = "/Users/pafau/tmp/"
+    AstClassGen(dir, "Statement").generateAst(listOf(
+        "Expr  = expr: Expression",
+        "Print = expr: Expression",
+        "Var   = name: Token, initializer: Expression",
+    ))
     AstClassGen(dir, "Expression").generateAst(listOf(
         "Ternary  = condition: Expression, ifBranch: Expression, elseBranch: Expression",
         "Binary   = left: Expression, operator: Token, right: Expression",
         "Grouping = expr: Expression",
         "Literal  = value: Any?",
         "Unary    = operator: Token, right: Expression",
+        "Variable = name: Token",
     ))
 
 }

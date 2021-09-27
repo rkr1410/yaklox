@@ -3,21 +3,50 @@ package net.rkr1410.yaklox
 import net.rkr1410.yaklox.TokenType.*
 
 /*
-    expression  → equality ;
-    ternary     → equality ? equality : equality ;
-    equality    → comparison ( ( "!=" | "==" ) comparison )* ;
-    comparison  → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
-    term        → factor ( ( "-" | "+" ) factor )* ;
-    factor      → unary ( ( "/" | "*" ) unary )* ;
-    unary       → ( ("!" | "-") unary ) | primary ;
-    primary     → NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" ;
+
+    program      → declaration* EOF ;
+    declaration  → varDecl | statement ;
+    varDecl      → "var" IDENTIFIER ( '=' expression )? ";" ;
+    statement    → exprStmt | printStmt ;
+    exprStmt     → expression ";" ;
+    printStmt    → "print" expression ";" ;
+    expression   → equality ;
+    ternary      → equality ? equality : equality ;
+    equality     → comparison ( ( "!=" | "==" ) comparison )* ;
+    comparison   → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
+    term         → factor ( ( "-" | "+" ) factor )* ;
+    factor       → unary ( ( "/" | "*" ) unary )* ;
+    unary        → ( ("!" | "-") unary ) | primary ;
+    primary      → NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" | IDENTIFIER;
  */
 
 class Parser(private val tokens: List<Token>) {
     private var current = 0
 
-    fun parse(): Expression {
-        return expression()
+    fun parse(): List<Statement> {
+        val statements = mutableListOf<Statement>()
+        while (!isEof()) statements.add(statement())
+        return statements
+    }
+
+    private fun statement(): Statement {
+        if (advanceIf(PRINT)) return printStatement()
+
+        return expressionStatement()
+    }
+
+    private fun printStatement(): Statement.Print {
+        val value = expression()
+        require("Expected ;", SEMICOLON)
+
+        return Statement.Print(value)
+    }
+
+    private fun expressionStatement(): Statement.Expr {
+        val value = expression()
+        require("Expected ;", SEMICOLON)
+
+        return Statement.Expr(value)
     }
 
     private fun expression(): Expression = ternary()

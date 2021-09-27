@@ -1,6 +1,5 @@
 package net.rkr1410.yaklox
 
-import net.rkr1410.yaklox.tools.ExprPrinter
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
 import kotlin.system.exitProcess
@@ -8,6 +7,7 @@ import kotlin.system.exitProcess
 class Yak {
     companion object {
         var hadError = false
+        var hadRuntimeError = false
         var err: PrintStream = System.err
 
         /* KOTLIN
@@ -24,22 +24,21 @@ class Yak {
         }
 
         fun runCode(code: String) {
-            println("Source:\n$code")
+            println("------------ source --------\n$code\n------------  end   --------\n")
             // scan
             val scanner = Scanner(code)
             val tokens = scanner.scanTokens()
             if (hadError) return
             val parser = Parser(tokens)
-            var expr: Expression? = null
             try {
-                expr = parser.parse()
+                val program = parser.parse()
+                Interpreter().execute(program)
             } catch (e: ParseError) {
                 //System.err.println("Parse error")
             }
-            if (hadError) return
-            val printer = ExprPrinter()
-            expr?.run(printer::stringify).let(::println)
-            // interpret
+//            if (hadError) return
+//            val printer = ExprPrinter()
+//            expr?.run(printer::stringify).let(::println)
         }
 
         private fun runScript(scriptName: String) {
@@ -52,6 +51,11 @@ class Yak {
         private fun printUsageAndExit() {
             println("Usage yak [script]")
             exitProcess(EX_USAGE)
+        }
+
+        fun reportRuntimeError(re: RuntimeError) {
+            reportError(re.token, re.message ?: "no message")
+            hadRuntimeError = true
         }
 
         fun reportError(token: Token, message: String) {
@@ -74,18 +78,14 @@ class Yak {
 
 /* KOTLIN
    Ok, so there's main both here and in the Yak companion object. That other main is what gets
-   executed when running net.rkr1410.yaklox.Yak, and this one when running net.rkr1410.yaklox.YakKt,
+   executed when running net.rkr1410.yaklox.Yak (and if @JvmStatic is omitted, it needs to be run via
+   net.rkr1410.yaklox.Yak.Companion), and this one when running net.rkr1410.yaklox.YakKt,
    which seems to explain stuff like this:
    https://stackoverflow.com/questions/68216963/spring-boot-kotlin-gradle-error-main-method-not-found-in-class */
 fun main(args: Array<String>) {
-    //Yak.main(args)
-    Yak.runCode(">")
-    Yak.hadError = false
-    Yak.runCode(">1")
-    Yak.hadError = false
-    Yak.runCode(">(1")
-    //Yak.runCode("//asd\n")
-    //Yak.runCode("\"a\nz")
-    //Yak.runCode("1.")
-    //Yak.runCode("fafa r")
+    val resource = Yak::class.java.getResource("/test.yak")
+    val src = resource?.readText()
+
+    if (src != null) Yak.runCode(src)
+    else System.err.println("Could not find the input file")
 }

@@ -26,5 +26,9 @@ abstract class Expression {
     data class Unary(
         val operator: Token,
         val right: Expression
+    ): Expression() 
+
+    data class Variable(
+        val name: Token
     ): Expression()
 }
