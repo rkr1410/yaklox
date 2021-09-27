@@ -18,62 +18,62 @@ abstract class ExpressionAsserter {
 }
 
 class IsLiteral(
-    private val expression: Expression,
+    private val expr: Expression,
     private val value: Any?
 ) : ExpressionAsserter() {
     override fun assert() {
-        assertIs<Expression.Literal>(expression, shouldHaveBeen(expression, "Literal"))
-        assertEquals(value, expression.value)
+        assertIs<Expression.Literal>(expr, shouldHaveBeen(expr, "Literal"))
+        assertEquals(value, expr.value)
     }
 }
 
 class IsUnary(
-    private val expression: Expression,
+    private val expr: Expression,
     private val operator: TokenType
 ) : ExpressionAsserter() {
     override fun assert() {
-        assertIs<Expression.Unary>(expression, shouldHaveBeen(expression, "Unary"))
-        assertEquals(operator, expression.operator.type)
+        assertIs<Expression.Unary>(expr, shouldHaveBeen(expr, "Unary"))
+        assertEquals(operator, expr.operator.type)
         super.assert()
     }
 
     fun hasOperandWhich(operandAsserter: (Expression) -> ExpressionAsserter): IsUnary {
-        addAsserter { operandAsserter((expression as Expression.Unary).right) }
+        addAsserter { operandAsserter((expr as Expression.Unary).right) }
         return this
     }
 }
 
 class IsGrouping(
-    private val expression: Expression
+    private val expr: Expression
 ) : ExpressionAsserter() {
     override fun assert() {
-        assertIs<Expression.Grouping>(expression, shouldHaveBeen(expression, "Grouping"))
+        assertIs<Expression.Grouping>(expr, shouldHaveBeen(expr, "Grouping"))
         super.assert()
     }
 
     fun groupsExpressionWhich(groupedExprAsserter: (Expression) -> ExpressionAsserter): IsGrouping {
-        addAsserter { groupedExprAsserter((expression as Expression.Grouping).expr) }
+        addAsserter { groupedExprAsserter((expr as Expression.Grouping).expr) }
         return this
     }
 }
 
 class IsBinary(
-    private val expression: Expression,
+    private val expr: Expression,
     private val operator: TokenType
 ) : ExpressionAsserter() {
     override fun assert() {
-        assertIs<Expression.Binary>(expression, shouldHaveBeen(expression, "Binary expression"))
-        assertEquals(operator, expression.operator.type)
+        assertIs<Expression.Binary>(expr, shouldHaveBeen(expr, "Binary expression"))
+        assertEquals(operator, expr.operator.type)
         super.assert()
     }
 
     fun hasLeftHandSideWhich(lhsAsserter: (Expression) -> ExpressionAsserter): IsBinary {
-        addAsserter { lhsAsserter((expression as Expression.Binary).left) }
+        addAsserter { lhsAsserter((expr as Expression.Binary).left) }
         return this
     }
 
     fun hasRightHandSideWhich(rhsAsserter: (Expression) -> ExpressionAsserter): IsBinary {
-        addAsserter { rhsAsserter((expression as Expression.Binary).right) }
+        addAsserter { rhsAsserter((expr as Expression.Binary).right) }
         return this
     }
 }

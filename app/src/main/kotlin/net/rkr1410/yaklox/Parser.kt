@@ -71,7 +71,16 @@ class Parser(private val tokens: List<Token>) {
             return Expression.Grouping(expr)
         }
 
+        `check if there's a binary operator missing left-hand side`()
         throw error("Expected an expression")
+    }
+
+
+    private fun `check if there's a binary operator missing left-hand side`() {
+        if (advanceIf(EQUAL_EQUAL, BANG_EQUAL, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL, PLUS, SLASH, STAR)) {
+            val operator = previous()
+            throw error("Missing left-hand side", operator)
+        }
     }
 
     private fun advanceIf(vararg types: TokenType) = !isEof() and (peek().type in types).whenTrueAlso(::advance)
@@ -80,8 +89,8 @@ class Parser(private val tokens: List<Token>) {
     private fun isEof() = peek().type == EOF
     private fun peek() = tokens[current]
     private fun previous() = tokens[current - 1]
-    private fun error(message: String): ParseError {
-        Yak.reportError(peek(), message)
+    private fun error(message: String, token: Token = peek()): RuntimeException {
+        Yak.reportError(token, message)
         return ParseError()
     }
 

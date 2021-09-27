@@ -79,7 +79,11 @@ class Yak {
    https://stackoverflow.com/questions/68216963/spring-boot-kotlin-gradle-error-main-method-not-found-in-class */
 fun main(args: Array<String>) {
     //Yak.main(args)
-    Yak.runCode("(12")
+    Yak.runCode(">")
+    Yak.hadError = false
+    Yak.runCode(">1")
+    Yak.hadError = false
+    Yak.runCode(">(1")
     //Yak.runCode("//asd\n")
     //Yak.runCode("\"a\nz")
     //Yak.runCode("1.")

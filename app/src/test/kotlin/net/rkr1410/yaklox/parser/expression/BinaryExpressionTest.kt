@@ -2,32 +2,14 @@ package net.rkr1410.yaklox.parser.expression
 
 import net.rkr1410.yaklox.TokenType
 import net.rkr1410.yaklox.TokenType.*
-import net.rkr1410.yaklox.tools.ExprPrinter
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 
 class BinaryExpressionTest : ExpressionTestBase() {
-    companion object {
-        @JvmStatic
-        fun associativitySource() = listOf(
-            Arguments.of("1 + 2 + 3", 1.0, 2.0, 3.0, PLUS, "Addition"),
-            Arguments.of("4 - 5 - 6", 4.0, 5.0, 6.0, MINUS, "Subtraction"),
-            Arguments.of("7 * 8 * 9", 7.0, 8.0, 9.0, STAR, "Multiplication"),
-            Arguments.of("10 / 11 / 12", 10.0, 11.0, 12.0, SLASH, "Division"),
-            Arguments.of("13 < 14 < 15", 13.0, 14.0, 15.0, LESS, "Lesser-than"),
-            Arguments.of("16 <= 17 <= 18", 16.0, 17.0, 18.0, LESS_EQUAL, "Lesser-than-or-equal"),
-            Arguments.of("19 > 20 > 21", 19.0, 20.0, 21.0, GREATER, "Greater-than"),
-            Arguments.of("22 >= 23 >= 24", 22.0, 23.0, 24.0, GREATER_EQUAL, "Greater-than-or-equal"),
-            Arguments.of("true == false == 2", true, false, 2.0, EQUAL_EQUAL, "Equal comparison"),
-            Arguments.of("true != false != 2", true, false, 2.0, BANG_EQUAL, "Not-equals comparison"),
-        )
-    }
-
     @ParameterizedTest(name = "{5} is left-associative ({0})")
-    @MethodSource("associativitySource")
+    @MethodSource("net.rkr1410.yaklox.parser.expression.BinaryTestSources#associativitySource")
     @DisplayName("Binary operators are left-associative")
     fun testLeftAssociativity(
         src: String,
@@ -109,5 +91,11 @@ class BinaryExpressionTest : ExpressionTestBase() {
                 }
             }
             .assert()
+    }
+
+    @ParameterizedTest(name = "Source \"{0} 42\" gives an error: '[1:1] Missing left-hand side'")
+    @MethodSource("net.rkr1410.yaklox.parser.expression.BinaryTestSources#strictlyBinaryOperatorSources")
+    fun `Operators without unary equivalent cannot be used as such`(operator: String) {
+        assertErrorFor("$operator 42", "[1:1] Missing left-hand side")
     }
 }
