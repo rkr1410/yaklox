@@ -16,7 +16,7 @@ class IsLiteral(
     private val value: Any?
 ) : ExpressionAsserter() {
     override fun assert() {
-        assertIs<Expression.Literal>(expression,"Expected ${expression.javaClass.simpleName} ${exprPrinter.visit(expression)} to be a Literal\n")
+        assertIs<Expression.Literal>(expression,"Expected ${expression.javaClass.simpleName} ${exprPrinter.stringify(expression)} to be a Literal\n")
         assertEquals(value, expression.value)
     }
 }
@@ -26,7 +26,7 @@ class IsUnary(
     private val operator: TokenType
 ) : ExpressionAsserter() {
     override fun assert() {
-        assertIs<Expression.Unary>(expression,"Expected ${expression.javaClass.simpleName} ${exprPrinter.visit(expression)} to be Unary\n")
+        assertIs<Expression.Unary>(expression,"Expected ${expression.javaClass.simpleName} ${exprPrinter.stringify(expression)} to be Unary\n")
         assertEquals(operator, expression.operator.type)
     }
 
@@ -40,7 +40,7 @@ class IsGrouping(
     private val expression: Expression
 ) : ExpressionAsserter() {
     override fun assert() {
-        assertIs<Expression.Grouping>(expression,"Expected ${expression.javaClass.simpleName} ${exprPrinter.visit(expression)} to be a Grouping\n")
+        assertIs<Expression.Grouping>(expression,"Expected ${expression.javaClass.simpleName} ${exprPrinter.stringify(expression)} to be a Grouping\n")
     }
 
     fun groupsExpressionWhich(groupedExprAsserter: (Expression) -> ExpressionAsserter): IsGrouping {
@@ -54,7 +54,7 @@ class IsBinary(
     private val operator: TokenType
 ) : ExpressionAsserter() {
     override fun assert() {
-        assertIs<Expression.Binary>(expression, "Expected ${expression.javaClass.simpleName} ${exprPrinter.visit(expression)} to be a Binary expression\n")
+        assertIs<Expression.Binary>(expression, "Expected ${expression.javaClass.simpleName} ${exprPrinter.stringify(expression)} to be a Binary expression\n")
         assertEquals(operator, expression.operator.type)
     }
 

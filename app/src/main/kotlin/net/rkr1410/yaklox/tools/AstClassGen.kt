@@ -11,11 +11,6 @@ internal class AstClassGen(private val outputDir: String, private val baseName: 
                 
                 |abstract class $baseName {
                 |
-                |    abstract fun <R> accept(visitor: Visitor<R>): R
-                |    interface Visitor<R> {
-                         |${each(tab2() to "\n", typedefs.map(::visitorMethod))}
-                |    }
-                |    
                      |${each("" to "\n", typedefs.map(::astType))}
                 |}
             """.trimMargin()
@@ -27,14 +22,11 @@ internal class AstClassGen(private val outputDir: String, private val baseName: 
     private fun each(preAndPostfix: Pair<String?, String>, items: List<String>) =
         items.joinToString(preAndPostfix.second) { "${preAndPostfix.first?:""}$it" }.trimEnd()
 
-    private fun visitorMethod(td: TypeDef) = "fun visit${td.className}$baseName(expression: ${td.className}): R"
     private fun astType(td: TypeDef) =
         """
-            |    class ${td.className}(
+            |    data class ${td.className}(
                     |${each("${tab2()}val " to ",\n", td.properties)}
-            |    ): Expression() {
-            |       override fun <R> accept(visitor: Visitor<R>) = visitor.visit${td.className}$baseName(this)
-            |    }
+            |    ): Expression() 
             |
         """.trimMargin()
 }

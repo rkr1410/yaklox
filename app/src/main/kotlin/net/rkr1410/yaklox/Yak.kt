@@ -38,8 +38,7 @@ class Yak {
             }
             if (hadError) return
             val printer = ExprPrinter()
-            expr?.run(printer::visit).let(::println)
-            //ExprPrinter().visit(expr).let(::println)
+            expr?.run(printer::stringify).let(::println)
             // interpret
         }
 

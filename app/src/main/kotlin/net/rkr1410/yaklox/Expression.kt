@@ -3,38 +3,22 @@ package net.rkr1410.yaklox
                 
 abstract class Expression {
 
-    abstract fun <R> accept(visitor: Visitor<R>): R
-    interface Visitor<R> {
-        fun visitBinaryExpression(expression: Binary): R
-        fun visitGroupingExpression(expression: Grouping): R
-        fun visitLiteralExpression(expression: Literal): R
-        fun visitUnaryExpression(expression: Unary): R
-    }
-    
-    class Binary(
+    data class Binary(
         val left: Expression,
         val operator: Token,
         val right: Expression
-    ): Expression() {
-       override fun <R> accept(visitor: Visitor<R>) = visitor.visitBinaryExpression(this)
-    }
+    ): Expression() 
 
-    class Grouping(
+    data class Grouping(
         val expr: Expression
-    ): Expression() {
-       override fun <R> accept(visitor: Visitor<R>) = visitor.visitGroupingExpression(this)
-    }
+    ): Expression() 
 
-    class Literal(
+    data class Literal(
         val value: Any?
-    ): Expression() {
-       override fun <R> accept(visitor: Visitor<R>) = visitor.visitLiteralExpression(this)
-    }
+    ): Expression() 
 
-    class Unary(
+    data class Unary(
         val operator: Token,
         val right: Expression
-    ): Expression() {
-       override fun <R> accept(visitor: Visitor<R>) = visitor.visitUnaryExpression(this)
-    }
+    ): Expression()
 }
