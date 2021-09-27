@@ -4,6 +4,7 @@ import net.rkr1410.yaklox.TokenType.*
 
 /*
     expression  → equality ;
+    ternary     → equality ? equality : equality ;
     equality    → comparison ( ( "!=" | "==" ) comparison )* ;
     comparison  → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
     term        → factor ( ( "-" | "+" ) factor )* ;
@@ -13,14 +14,26 @@ import net.rkr1410.yaklox.TokenType.*
  */
 
 class Parser(private val tokens: List<Token>) {
-
     private var current = 0
 
     fun parse(): Expression {
         return expression()
     }
 
-    private fun expression(): Expression = equality()
+    private fun expression(): Expression = ternary()
+
+    private fun ternary(): Expression {
+        var expr = equality()
+
+        if (advanceIf(QUESTION_MARK)) {
+            val ifBranch = equality()
+            require("Expected :", COLON)
+            val elseBranch = equality()
+            expr = Expression.Ternary(expr, ifBranch, elseBranch)
+        }
+
+        return expr
+    }
 
     private fun equality()   = binary(::comparison, EQUAL_EQUAL, BANG_EQUAL)
     private fun comparison() = binary(::term,       GREATER, GREATER_EQUAL, LESS, LESS_EQUAL)
@@ -61,7 +74,8 @@ class Parser(private val tokens: List<Token>) {
         throw error("Expected an expression")
     }
 
-    private fun advanceIf(vararg types: TokenType) = !isEof() and (peek().type in types).whenTrueAlso { current++ }
+    private fun advanceIf(vararg types: TokenType) = !isEof() and (peek().type in types).whenTrueAlso(::advance)
+    private fun advance() { if (!isEof()) current++ }
     private fun require(errMsg: String, vararg types: TokenType) = advanceIf(*types).whenFalseAlso { throw error(errMsg) }
     private fun isEof() = peek().type == EOF
     private fun peek() = tokens[current]
@@ -73,6 +87,19 @@ class Parser(private val tokens: List<Token>) {
 
     private fun Boolean.whenTrueAlso(block: () -> Unit) = also { if (it) block() }
     private fun Boolean.whenFalseAlso(block: () -> Unit) = also { if (!it) block() }
+
+    fun synchronize() {
+        advance()
+        while (!isEof()) {
+            if (previous().type == SEMICOLON) return
+            if (peek().type in synchronizables) return
+            advance()
+        }
+    }
+
+    companion object {
+        val synchronizables = listOf(CLASS, FUN, VAR, FOR, IF, WHILE, PRINT, RETURN)
+    }
 }
 
 class ParseError : RuntimeException()

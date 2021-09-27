@@ -45,6 +45,7 @@ fun main() {
     val dir = "app/src/main/kotlin/net/rkr1410/yaklox/"
     //val dir = "/Users/pafau/tmp/"
     AstClassGen(dir, "Expression").generateAst(listOf(
+        "Ternary  = condition: Expression, ifBranch: Expression, elseBranch: Expression",
         "Binary   = left: Expression, operator: Token, right: Expression",
         "Grouping = expr: Expression",
         "Literal  = value: Any?",

@@ -110,5 +110,4 @@ class BinaryExpressionTest : ExpressionTestBase() {
             }
             .assert()
     }
-
 }

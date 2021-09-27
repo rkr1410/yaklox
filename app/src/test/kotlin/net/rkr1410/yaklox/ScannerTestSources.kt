@@ -21,6 +21,8 @@ class ScannerTestSources {
             Arguments.of("!", BANG),
             Arguments.of("/", SLASH),
             Arguments.of("=", EQUAL),
+            Arguments.of("?", QUESTION_MARK),
+            Arguments.of(":", COLON),
             Arguments.of("<", LESS),
             Arguments.of(">", GREATER),
             Arguments.of("==", EQUAL_EQUAL),

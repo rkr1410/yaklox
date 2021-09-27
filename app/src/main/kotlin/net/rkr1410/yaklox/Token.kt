@@ -23,7 +23,8 @@ data class Token(
 enum class TokenType {
     // single-char lexemes
     LEFT_PAREN, RIGHT_PAREN, LEFT_BRACE, RIGHT_BRACE, COMMA,
-    DOT, MINUS, PLUS, SEMICOLON, SLASH, STAR,
+    DOT, MINUS, PLUS, SEMICOLON, SLASH, STAR, QUESTION_MARK,
+    COLON,
 
     // single, but possibly two-char
     BANG, BANG_EQUAL, EQUAL, EQUAL_EQUAL, GREATER, GREATER_EQUAL,

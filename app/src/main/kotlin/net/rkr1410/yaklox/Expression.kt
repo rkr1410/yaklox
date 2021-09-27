@@ -3,6 +3,12 @@ package net.rkr1410.yaklox
                 
 abstract class Expression {
 
+    data class Ternary(
+        val condition: Expression,
+        val ifBranch: Expression,
+        val elseBranch: Expression
+    ): Expression() 
+
     data class Binary(
         val left: Expression,
         val operator: Token,

@@ -7,8 +7,14 @@ import kotlin.test.assertEquals
 import kotlin.test.assertIs
 
 abstract class ExpressionAsserter {
-    protected val exprPrinter = ExprPrinter()
-    abstract fun assert()
+    private val exprPrinter = ExprPrinter()
+    private val asserters = mutableListOf<() -> ExpressionAsserter>()
+    fun addAsserter(anAssert: () -> ExpressionAsserter) = asserters.add(anAssert)
+    open fun assert() {
+        for (asserter in asserters) asserter().assert()
+    }
+    fun shouldHaveBeen(expr: Expression, type: String) =
+        "Expected ${expr.javaClass.simpleName} ${exprPrinter.stringify(expr)} to be a ${type}\n"
 }
 
 class IsLiteral(
@@ -16,7 +22,7 @@ class IsLiteral(
     private val value: Any?
 ) : ExpressionAsserter() {
     override fun assert() {
-        assertIs<Expression.Literal>(expression,"Expected ${expression.javaClass.simpleName} ${exprPrinter.stringify(expression)} to be a Literal\n")
+        assertIs<Expression.Literal>(expression, shouldHaveBeen(expression, "Literal"))
         assertEquals(value, expression.value)
     }
 }
@@ -26,12 +32,13 @@ class IsUnary(
     private val operator: TokenType
 ) : ExpressionAsserter() {
     override fun assert() {
-        assertIs<Expression.Unary>(expression,"Expected ${expression.javaClass.simpleName} ${exprPrinter.stringify(expression)} to be Unary\n")
+        assertIs<Expression.Unary>(expression, shouldHaveBeen(expression, "Unary"))
         assertEquals(operator, expression.operator.type)
+        super.assert()
     }
 
     fun hasOperandWhich(operandAsserter: (Expression) -> ExpressionAsserter): IsUnary {
-        operandAsserter((expression as Expression.Unary).right).assert()
+        addAsserter { operandAsserter((expression as Expression.Unary).right) }
         return this
     }
 }
@@ -40,11 +47,12 @@ class IsGrouping(
     private val expression: Expression
 ) : ExpressionAsserter() {
     override fun assert() {
-        assertIs<Expression.Grouping>(expression,"Expected ${expression.javaClass.simpleName} ${exprPrinter.stringify(expression)} to be a Grouping\n")
+        assertIs<Expression.Grouping>(expression, shouldHaveBeen(expression, "Grouping"))
+        super.assert()
     }
 
     fun groupsExpressionWhich(groupedExprAsserter: (Expression) -> ExpressionAsserter): IsGrouping {
-        groupedExprAsserter((expression as Expression.Grouping).expr).assert()
+        addAsserter { groupedExprAsserter((expression as Expression.Grouping).expr) }
         return this
     }
 }
@@ -54,17 +62,43 @@ class IsBinary(
     private val operator: TokenType
 ) : ExpressionAsserter() {
     override fun assert() {
-        assertIs<Expression.Binary>(expression, "Expected ${expression.javaClass.simpleName} ${exprPrinter.stringify(expression)} to be a Binary expression\n")
+        assertIs<Expression.Binary>(expression, shouldHaveBeen(expression, "Binary expression"))
         assertEquals(operator, expression.operator.type)
+        super.assert()
     }
 
     fun hasLeftHandSideWhich(lhsAsserter: (Expression) -> ExpressionAsserter): IsBinary {
-        lhsAsserter((expression as Expression.Binary).left).assert()
+        addAsserter { lhsAsserter((expression as Expression.Binary).left) }
         return this
     }
 
     fun hasRightHandSideWhich(rhsAsserter: (Expression) -> ExpressionAsserter): IsBinary {
-        rhsAsserter((expression as Expression.Binary).right).assert()
+        addAsserter { rhsAsserter((expression as Expression.Binary).right) }
         return this
     }
+}
+
+class IsTernary(
+    private val expression: Expression
+) : ExpressionAsserter() {
+    override fun assert() {
+        assertIs<Expression.Ternary>(expression, shouldHaveBeen(expression, "Ternary expression"))
+        super.assert()
+    }
+
+    fun hasConditionWhich(conditionBranchAsserter: (Expression) -> ExpressionAsserter): IsTernary {
+        addAsserter { conditionBranchAsserter((expression as Expression.Ternary).condition) }
+        return this
+    }
+
+    fun hasTrueBranchWhich(ifBranchAsserter: (Expression) -> ExpressionAsserter): IsTernary {
+        addAsserter { ifBranchAsserter((expression as Expression.Ternary).ifBranch) }
+        return this
+    }
+
+    fun hasFalseBranchWhich(falseBranchAsserter: (Expression) -> ExpressionAsserter): IsTernary {
+        addAsserter { falseBranchAsserter((expression as Expression.Ternary).elseBranch) }
+        return this
+    }
+
 }
