@@ -9,11 +9,6 @@ import org.junit.jupiter.params.provider.MethodSource
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
 
-/*
-    I think literals are as far as I'm going to go with tests using visitors.
-    It's tests - so the point is to test, not to hold on tightly to 'best practices',
-    so I think I'm just going to use reflection as soon as I'm done with testing literals.
- */
 class LiteralExpressionTest : ExpressionTestBase() {
 
     @ParameterizedTest(name = "Simple number expression parses successfully: {0} -> {1}")
@@ -23,7 +18,7 @@ class LiteralExpressionTest : ExpressionTestBase() {
         val expr = expression(numSource)
 
         assertIs<Expression.Literal>(expr)
-        assertEquals(expectedLiteral, expr.accept(literalValueVisitor))
+        assertEquals(expectedLiteral, expr.value)
     }
 
     @ParameterizedTest(name = "Number expression with decimal places parses successfully: {0} -> {1}")
@@ -33,7 +28,7 @@ class LiteralExpressionTest : ExpressionTestBase() {
         val expr = expression(numSource)
 
         assertIs<Expression.Literal>(expr)
-        assertEquals(expectedLiteral, expr.accept(literalValueVisitor))
+        assertEquals(expectedLiteral, expr.value)
     }
 
     @ParameterizedTest(name = "String expression parses successfully: {0}")
@@ -43,27 +38,27 @@ class LiteralExpressionTest : ExpressionTestBase() {
         val expr = expression(stringSource)
 
         assertIs<Expression.Literal>(expr)
-        assertEquals(stringLiteral, expr.accept(literalValueVisitor))
+        assertEquals(stringLiteral, expr.value)
     }
 
     @Test
     fun `false is a literal`() {
         val expr = expression("false")
         assertIs<Expression.Literal>(expr)
-        assertEquals(false, expr.accept(literalValueVisitor))
+        assertEquals(false, expr.value)
     }
 
     @Test
     fun `true is a literal`() {
         val expr = expression("true")
         assertIs<Expression.Literal>(expr)
-        assertEquals(true, expr.accept(literalValueVisitor))
+        assertEquals(true, expr.value)
     }
 
     @Test
     fun `nil is a NoLiteral literal`() {
         val expr = expression("nil")
         assertIs<Expression.Literal>(expr)
-        assertEquals(Token.NoLiteral, expr.accept(literalValueVisitor))
+        assertEquals(Token.NoLiteral, expr.value)
     }
 }

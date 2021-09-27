@@ -54,7 +54,7 @@ class Parser(private val tokens: List<Token>) {
 
         if (advanceIf(LEFT_PAREN)) {
             val expr = expression()
-            advanceIf(RIGHT_PAREN).whenFalseAlso { throw error("Expected a closing ')'")}
+            require("Expected a closing ')'", RIGHT_PAREN)
             return Expression.Grouping(expr)
         }
 
@@ -62,6 +62,7 @@ class Parser(private val tokens: List<Token>) {
     }
 
     private fun advanceIf(vararg types: TokenType) = !isEof() and (peek().type in types).whenTrueAlso { current++ }
+    private fun require(errMsg: String, vararg types: TokenType) = advanceIf(*types).whenFalseAlso { throw error(errMsg) }
     private fun isEof() = peek().type == EOF
     private fun peek() = tokens[current]
     private fun previous() = tokens[current - 1]
