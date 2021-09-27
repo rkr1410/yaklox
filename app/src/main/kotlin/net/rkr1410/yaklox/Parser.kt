@@ -14,7 +14,7 @@ import net.rkr1410.yaklox.TokenType.*
 
 class Parser(private val tokens: List<Token>) {
 
-    private var current = 0;
+    private var current = 0
 
     fun parse(): Expression {
         return expression()
@@ -22,10 +22,10 @@ class Parser(private val tokens: List<Token>) {
 
     private fun expression(): Expression = equality()
 
-    private fun equality() = binary(::comparison, EQUAL_EQUAL, BANG_EQUAL)
-    private fun comparison() = binary(::term, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL)
-    private fun term() = binary(::factor, PLUS, MINUS)
-    private fun factor() = binary(::unary, SLASH, STAR)
+    private fun equality()   = binary(::comparison, EQUAL_EQUAL, BANG_EQUAL)
+    private fun comparison() = binary(::term,       GREATER, GREATER_EQUAL, LESS, LESS_EQUAL)
+    private fun term()       = binary(::factor,     PLUS, MINUS)
+    private fun factor()     = binary(::unary,      SLASH, STAR)
 
     private fun binary(higherPrecedence: () -> Expression, vararg operators: TokenType): Expression {
         var expr = higherPrecedence()
@@ -40,7 +40,9 @@ class Parser(private val tokens: List<Token>) {
 
     private fun unary(): Expression  {
         if (advanceIf(BANG, MINUS)) {
-            return Expression.Unary(previous(), unary())
+            val operator = previous()
+            val right = unary()
+            return Expression.Unary(operator, right)
         }
 
         return primary()
@@ -52,7 +54,7 @@ class Parser(private val tokens: List<Token>) {
 
         if (advanceIf(LEFT_PAREN)) {
             val expr = expression()
-            advanceIf(RIGHT_PAREN).also { if (!it) throw error("Expected a closing ')'")}
+            advanceIf(RIGHT_PAREN).whenFalseAlso { throw error("Expected a closing ')'")}
             return Expression.Grouping(expr)
         }
 
@@ -69,6 +71,7 @@ class Parser(private val tokens: List<Token>) {
     }
 
     private fun Boolean.whenTrueAlso(block: () -> Unit) = also { if (it) block() }
+    private fun Boolean.whenFalseAlso(block: () -> Unit) = also { if (!it) block() }
 }
 
 class ParseError : RuntimeException()

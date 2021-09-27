@@ -93,7 +93,7 @@ class BinaryExpressionTest : ExpressionTestBase() {
 
     @Test
     fun `test order of operations with parentheses`() {
-        val expr = expression("(1 == 2) > 3 - 4 * 5")
+        val expr = expression("(1 == 2) > 3")
 
         IsBinary(expr, GREATER)
             .hasLeftHandSideWhich { lhsGr ->
@@ -109,4 +109,5 @@ class BinaryExpressionTest : ExpressionTestBase() {
             }
             .assert()
     }
+
 }

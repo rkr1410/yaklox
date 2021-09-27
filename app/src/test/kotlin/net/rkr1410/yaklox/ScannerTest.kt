@@ -152,13 +152,13 @@ internal class ScannerTest {
     }
 }
 
-fun assertCodeGivesError(code: String, exoectedError: String) {
+fun assertCodeGivesError(code: String, expectedError: String) {
     val errBaos = Yak.setNewErrorByteArrayStream()
     val scanner = Scanner(code)
     scanner.scanTokens()
 
     val reportedError = String(errBaos.toByteArray()).filter { it != '\n' }
-    assertEquals(exoectedError, reportedError)
+    assertEquals(expectedError, reportedError)
 }
 
 fun assertScannerFor(source: String) = ScannerAsserter(source)
