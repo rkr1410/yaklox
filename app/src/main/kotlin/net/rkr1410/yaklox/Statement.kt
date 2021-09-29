@@ -14,5 +14,9 @@ abstract class Statement {
     data class Var(
         val name: Token,
         val initializer: Expression?
+    ): Statement() 
+
+    data class Block(
+        val statements: List<Statement>
     ): Statement()
 }

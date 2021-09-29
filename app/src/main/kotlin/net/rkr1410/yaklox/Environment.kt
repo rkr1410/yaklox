@@ -9,7 +9,7 @@ class Environment(private val parent: Environment? = null) {
     }
 
     fun declare(name: Token, value: Any? = null) {
-        if (isVisible(name)) throw RuntimeError(name, "Variable redeclaration not supported")
+        if (stuff.containsKey(name.lexeme)) throw RuntimeError(name, "Variable redeclaration not supported")
         stuff[name.lexeme] = value
     }
 
@@ -20,11 +20,5 @@ class Environment(private val parent: Environment? = null) {
         }
         parent?.assign(name, value) ?: throw RuntimeError(name, "Variable ${name.lexeme} is undefined")
         return value
-    }
-
-    private fun isVisible(name: Token): Boolean {
-        if (stuff.containsKey(name.lexeme)) return true
-        if (parent != null) return parent.isVisible(name)
-        return false
     }
 }

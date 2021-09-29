@@ -7,9 +7,10 @@ import net.rkr1410.yaklox.TokenType.*
     program      → declaration* EOF ;
     declaration  → varDecl | statement ;
     varDecl      → "var" IDENTIFIER ( '=' expression )? ";" ;
-    statement    → exprStmt | printStmt ;
+    statement    → exprStmt | printStmt | block ;
     exprStmt     → expression ";" ;
     printStmt    → "print" expression ";" ;
+    block        → "{" declaration* "}" ;
     expression   → assignment ;
     assignment   → IDENTIFIER "=" assignment | ternary ;
     ternary      → equality ? equality : equality ;
@@ -27,21 +28,21 @@ class Parser(private val tokens: List<Token>) {
     fun parse(): List<Statement>? {
         val statements = mutableListOf<Statement>()
         while (!isEof()) {
-            val statement = declaration()
-            statements.add(statement?: return null)
+            try {
+                val statement = declaration()
+                statements.add(statement)
+            } catch (e: Exception) {
+                synchronize()
+                return null
+            }
         }
         return statements
     }
 
-    private fun declaration(): Statement? {
-        try {
-            if (advanceIf(VAR)) return varDeclaration()
+    private fun declaration(): Statement {
+        if (advanceIf(VAR)) return varDeclaration()
 
-            return statement()
-        } catch (pe: ParseError) {
-            synchronize()
-            return null
-        }
+        return statement()
     }
 
     private fun varDeclaration(): Statement {
@@ -59,6 +60,7 @@ class Parser(private val tokens: List<Token>) {
 
     private fun statement(): Statement {
         if (advanceIf(PRINT)) return printStatement()
+        if (advanceIf(LEFT_BRACE)) return block()
 
         return expressionStatement()
     }
@@ -68,6 +70,16 @@ class Parser(private val tokens: List<Token>) {
         require("Expected ;", SEMICOLON)
 
         return Statement.Print(value)
+    }
+
+    private fun block(): Statement.Block {
+        val statements = mutableListOf<Statement>()
+
+        while (!isEof() and (peek().type != RIGHT_BRACE)) {
+            statements.add(declaration())
+        }
+        require("Unexpected EOF (unclosed block)", RIGHT_BRACE)
+        return Statement.Block(statements)
     }
 
     private fun expressionStatement(): Statement.Expr {

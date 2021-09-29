@@ -30,12 +30,8 @@ class Yak {
             val tokens = scanner.scanTokens()
             if (hadError) return
             val parser = Parser(tokens)
-            try {
-                val program = parser.parse()
-                if (program != null) Interpreter().interpret(program)
-            } catch (e: ParseError) {
-                //System.err.println("Parse error")
-            }
+            val program = parser.parse()
+            if (program != null) Interpreter().interpret(program)
 //            if (hadError) return
 //            val printer = ExprPrinter()
 //            expr?.run(printer::stringify).let(::println)

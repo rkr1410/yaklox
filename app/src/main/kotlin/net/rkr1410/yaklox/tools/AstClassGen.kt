@@ -48,6 +48,7 @@ fun main() {
         "Expr  = expr: Expression",
         "Print = expr: Expression",
         "Var   = name: Token, initializer: Expression?",
+        "Block = statements: List<Statement>",
     ))
     AstClassGen(dir, "Expression").generateAst(listOf(
         "Assign   = name: Token, value: Expression",

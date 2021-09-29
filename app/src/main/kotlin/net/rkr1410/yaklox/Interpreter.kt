@@ -18,9 +18,15 @@ class Interpreter {
                 is Statement.Print -> println(evaluate(stmt.expr, env))
                 is Statement.Expr  -> evaluate(stmt.expr, env)
                 is Statement.Var   -> declareVariable(stmt.name, stmt.initializer, env)
+                is Statement.Block -> executeBlock(stmt.statements, env)
                 else               -> throw RuntimeException("Unknown statement type ${stmt.javaClass}")
             }
         }
+    }
+
+    private fun executeBlock(statements: List<Statement>, env: Environment) {
+        val blockEnv = Environment(env)
+        execute(statements, blockEnv)
     }
 
     private fun declareVariable(name: Token, initializer: Expression?, env: Environment) {

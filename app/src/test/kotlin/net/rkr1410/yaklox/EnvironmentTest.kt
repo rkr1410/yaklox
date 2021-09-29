@@ -1,6 +1,5 @@
 package net.rkr1410.yaklox
 
-import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertEquals
@@ -37,6 +36,27 @@ class EnvironmentTest {
         topLevel.declare(_var, 5)
 
         assertEquals(5, child.get(_var))
+    }
+
+    @Test
+    fun `can shadow parent variable in child block`() {
+        /*
+        {
+            var test1 = 5;
+            {
+                var test1 = 444;
+            }
+        }
+         */
+        val topLevel = Environment()
+        val child = Environment(topLevel)
+        val _var = createVar("test1")
+
+        topLevel.declare(_var, 5)
+        assertEquals(5, child.get(_var))
+
+        child.declare(_var, 444)
+        assertEquals(444, child.get(_var))
     }
 
     @Test
@@ -83,27 +103,6 @@ class EnvironmentTest {
         val _var = createVar("test")
 
         child.declare(_var, 5)
-
-        val err = assertThrows<RuntimeError> { child.declare(_var, 4) }
-        val expectedError = "Variable redeclaration not supported"
-        assertTrue((err.message ?: "").contains(expectedError), "Expected \"${err.message}\" to contain \"$expectedError\"")
-    }
-
-    @Test
-    fun `cannot redeclare variable in child block`() {
-        /*
-        {
-            var test1 = 4;
-            {
-                var test1 = 2;
-            }
-        }
-         */
-        val topLevel = Environment()
-        val child = Environment(topLevel)
-        val _var = createVar("test1")
-
-        topLevel.declare(_var, 5)
 
         val err = assertThrows<RuntimeError> { child.declare(_var, 4) }
         val expectedError = "Variable redeclaration not supported"
