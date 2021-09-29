@@ -18,5 +18,11 @@ abstract class Statement {
 
     data class Block(
         val statements: List<Statement>
+    ): Statement() 
+
+    data class If(
+        val condition: Expression,
+        val thenBranch: Statement,
+        val elseBranch: Statement?
     ): Statement()
 }

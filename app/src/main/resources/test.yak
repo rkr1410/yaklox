@@ -1,9 +1,5 @@
-var outer = "outer";
+var a = 1;
 {
-    var inner = "inner";
-    {
-        var innermost = "innermost";
-        print outer + " " + inner + " " + innermost;
-    }
-    print outer + inner;
+    var a = a + 2;
+    if (a / 3 == 1) print ">1";
 }

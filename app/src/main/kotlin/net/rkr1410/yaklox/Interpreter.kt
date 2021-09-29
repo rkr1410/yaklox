@@ -12,16 +12,23 @@ class Interpreter {
         }
     }
 
-    fun execute(program: List<Statement>, env: Environment) {
-        for (stmt in program) {
-            when (stmt) {
-                is Statement.Print -> println(evaluate(stmt.expr, env))
-                is Statement.Expr  -> evaluate(stmt.expr, env)
-                is Statement.Var   -> declareVariable(stmt.name, stmt.initializer, env)
-                is Statement.Block -> executeBlock(stmt.statements, env)
-                else               -> throw RuntimeException("Unknown statement type ${stmt.javaClass}")
-            }
+    private fun execute(program: List<Statement>, env: Environment) {
+        for (stmt in program) execute(stmt, env)
+    }
+
+    private fun execute(stmt: Statement, env: Environment) {
+        when (stmt) {
+            is Statement.Print -> println(evaluate(stmt.expr, env))
+            is Statement.Expr  -> evaluate(stmt.expr, env)
+            is Statement.Var   -> declareVariable(stmt.name, stmt.initializer, env)
+            is Statement.Block -> executeBlock(stmt.statements, env)
+            is Statement.If    -> executeIf(stmt.condition, stmt.thenBranch, stmt.elseBranch, env)
+            else               -> throw RuntimeException("Unknown statement type ${stmt.javaClass}")
         }
+    }
+
+    private fun executeIf(cond: Expression, thenBranch: Statement, elseBranch: Statement?, env: Environment) {
+        if (evaluate(cond, env).isTruthy()) execute(thenBranch, env) else elseBranch?.run { execute(elseBranch, env) }
     }
 
     private fun executeBlock(statements: List<Statement>, env: Environment) {

@@ -7,7 +7,8 @@ import net.rkr1410.yaklox.TokenType.*
     program      → declaration* EOF ;
     declaration  → varDecl | statement ;
     varDecl      → "var" IDENTIFIER ( '=' expression )? ";" ;
-    statement    → exprStmt | printStmt | block ;
+    statement    → exprStmt | ifStmt | printStmt | block ;
+    ifStmt       → "if" "(" expression ")" statement ( "else" statement )?
     exprStmt     → expression ";" ;
     printStmt    → "print" expression ";" ;
     block        → "{" declaration* "}" ;
@@ -61,8 +62,20 @@ class Parser(private val tokens: List<Token>) {
     private fun statement(): Statement {
         if (advanceIf(PRINT)) return printStatement()
         if (advanceIf(LEFT_BRACE)) return block()
+        if (advanceIf(IF)) return ifStatement()
 
         return expressionStatement()
+    }
+
+    private fun ifStatement(): Statement.If {
+        if (!advanceIf(LEFT_PAREN)) throw error("'if' condition must be parenthesized")
+        val condition = expression()
+        if (!advanceIf(RIGHT_PAREN)) throw error("Closing paren missing")
+        val thenBranch = statement()
+        var elseBranch: Statement? = null
+        if (advanceIf(ELSE)) elseBranch = statement()
+
+        return Statement.If(condition, thenBranch, elseBranch)
     }
 
     private fun printStatement(): Statement.Print {
