@@ -10,7 +10,8 @@ import net.rkr1410.yaklox.TokenType.*
     statement    → exprStmt | printStmt ;
     exprStmt     → expression ";" ;
     printStmt    → "print" expression ";" ;
-    expression   → equality ;
+    expression   → assignment ;
+    assignment   → IDENTIFIER "=" assignment | ternary ;
     ternary      → equality ? equality : equality ;
     equality     → comparison ( ( "!=" | "==" ) comparison )* ;
     comparison   → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
@@ -23,10 +24,37 @@ import net.rkr1410.yaklox.TokenType.*
 class Parser(private val tokens: List<Token>) {
     private var current = 0
 
-    fun parse(): List<Statement> {
+    fun parse(): List<Statement>? {
         val statements = mutableListOf<Statement>()
-        while (!isEof()) statements.add(statement())
+        while (!isEof()) {
+            val statement = declaration()
+            statements.add(statement?: return null)
+        }
         return statements
+    }
+
+    private fun declaration(): Statement? {
+        try {
+            if (advanceIf(VAR)) return varDeclaration()
+
+            return statement()
+        } catch (pe: ParseError) {
+            synchronize()
+            return null
+        }
+    }
+
+    private fun varDeclaration(): Statement {
+        require("Missing variable name", IDENTIFIER)
+
+        val varName = previous()
+        var initializer: Expression? = null
+        if (advanceIf(EQUAL)) {
+            initializer = expression()
+        }
+        require("Expected ;", SEMICOLON)
+
+        return Statement.Var(varName, initializer)
     }
 
     private fun statement(): Statement {
@@ -49,7 +77,19 @@ class Parser(private val tokens: List<Token>) {
         return Statement.Expr(value)
     }
 
-    private fun expression(): Expression = ternary()
+    private fun expression(): Expression = assignment()
+
+    private fun assignment(): Expression {
+        var expr = ternary()
+
+        if (advanceIf(EQUAL)) {
+            val assignmentExpr = assignment()
+            if (expr is Expression.Variable) expr = Expression.Assign(expr.name, assignmentExpr)
+            else throw error("Invalid assignment target")
+        }
+
+        return expr
+    }
 
     private fun ternary(): Expression {
         var expr = equality()
@@ -93,6 +133,8 @@ class Parser(private val tokens: List<Token>) {
     private fun primary(): Expression {
         if (advanceIf(NIL, FALSE, TRUE, NUMBER, STRING))
             return Expression.Literal(previous().literal)
+
+        if (advanceIf(IDENTIFIER)) return Expression.Variable(previous())
 
         if (advanceIf(LEFT_PAREN)) {
             val expr = expression()

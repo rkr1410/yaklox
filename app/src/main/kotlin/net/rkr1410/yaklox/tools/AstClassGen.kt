@@ -47,9 +47,10 @@ fun main() {
     AstClassGen(dir, "Statement").generateAst(listOf(
         "Expr  = expr: Expression",
         "Print = expr: Expression",
-        "Var   = name: Token, initializer: Expression",
+        "Var   = name: Token, initializer: Expression?",
     ))
     AstClassGen(dir, "Expression").generateAst(listOf(
+        "Assign   = name: Token, value: Expression",
         "Ternary  = condition: Expression, ifBranch: Expression, elseBranch: Expression",
         "Binary   = left: Expression, operator: Token, right: Expression",
         "Grouping = expr: Expression",

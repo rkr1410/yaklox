@@ -13,6 +13,6 @@ abstract class Statement {
 
     data class Var(
         val name: Token,
-        val initializer: Expression
+        val initializer: Expression?
     ): Statement()
 }

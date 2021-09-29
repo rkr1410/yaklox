@@ -32,7 +32,7 @@ class Yak {
             val parser = Parser(tokens)
             try {
                 val program = parser.parse()
-                Interpreter().execute(program)
+                if (program != null) Interpreter().interpret(program)
             } catch (e: ParseError) {
                 //System.err.println("Parse error")
             }

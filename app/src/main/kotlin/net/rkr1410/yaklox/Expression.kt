@@ -3,6 +3,11 @@ package net.rkr1410.yaklox
                 
 abstract class Expression {
 
+    data class Assign(
+        val name: Token,
+        val value: Expression
+    ): Expression() 
+
     data class Ternary(
         val condition: Expression,
         val ifBranch: Expression,

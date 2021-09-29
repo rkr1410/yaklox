@@ -1,1 +1,7 @@
-abcd;
+var abcd = "sum" + "mary";
+abcd = abcd == "summary" ? ("dra" + "gon" == "goblin" ? "dragon is a goblin" : "dragon is not a goblin") : "whatever";
+var second;
+var third = second = abcd;
+print "first: " + abcd;
+print "second: " + second;
+print "third: " + third;
