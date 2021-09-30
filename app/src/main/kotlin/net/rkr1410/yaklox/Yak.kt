@@ -9,6 +9,7 @@ class Yak {
         var hadError = false
         var hadRuntimeError = false
         var err: PrintStream = System.err
+        private var src: String = ""
 
         /* KOTLIN
            Apparently @JvmStatic is needed by Java if I want to call this prefixed just by Yak,
@@ -26,6 +27,7 @@ class Yak {
         fun runCode(code: String) {
             println("------------ source --------\n$code\n------------  end   --------\n")
             // scan
+            src = code
             val scanner = Scanner(code)
             val tokens = scanner.scanTokens()
             if (hadError) return
@@ -59,6 +61,10 @@ class Yak {
         }
 
         fun reportError(line: Int, position: Int?, message: String) {
+            if (position != null) {
+                err.println(src.lines()[line - 1])
+                err.println(" ".repeat(position - 1) + '^')
+            }
             err.println("[$line:$position] $message")
             hadError = true
         }

@@ -59,6 +59,7 @@ fun main() {
         "Literal  = value: Any?",
         "Unary    = operator: Token, right: Expression",
         "Variable = name: Token",
+        "Logical  = left: Expression, operator: Token, right: Expression",
     ))
 
 }

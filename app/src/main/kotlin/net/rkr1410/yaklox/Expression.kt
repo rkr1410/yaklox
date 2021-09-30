@@ -35,5 +35,11 @@ abstract class Expression {
 
     data class Variable(
         val name: Token
+    ): Expression() 
+
+    data class Logical(
+        val left: Expression,
+        val operator: Token,
+        val right: Expression
     ): Expression()
 }

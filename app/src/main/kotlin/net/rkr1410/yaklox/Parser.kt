@@ -1,5 +1,7 @@
 package net.rkr1410.yaklox
 
+import net.rkr1410.yaklox.Expression.Binary
+import net.rkr1410.yaklox.Expression.Logical
 import net.rkr1410.yaklox.TokenType.*
 
 /*
@@ -13,7 +15,9 @@ import net.rkr1410.yaklox.TokenType.*
     printStmt    → "print" expression ";" ;
     block        → "{" declaration* "}" ;
     expression   → assignment ;
-    assignment   → IDENTIFIER "=" assignment | ternary ;
+    assignment   → IDENTIFIER "=" assignment | logic_or ;
+    logic_or     → logic_and ( "or" logic_and )*;
+    logic_and    → ternary ( "and" ternary )* ;
     ternary      → equality ? equality : equality ;
     equality     → comparison ( ( "!=" | "==" ) comparison )* ;
     comparison   → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
@@ -71,6 +75,7 @@ class Parser(private val tokens: List<Token>) {
         if (!advanceIf(LEFT_PAREN)) throw error("'if' condition must be parenthesized")
         val condition = expression()
         if (!advanceIf(RIGHT_PAREN)) throw error("Closing paren missing")
+
         val thenBranch = statement()
         var elseBranch: Statement? = null
         if (advanceIf(ELSE)) elseBranch = statement()
@@ -105,7 +110,7 @@ class Parser(private val tokens: List<Token>) {
     private fun expression(): Expression = assignment()
 
     private fun assignment(): Expression {
-        var expr = ternary()
+        var expr = logicOr()
 
         if (advanceIf(EQUAL)) {
             val assignmentExpr = assignment()
@@ -115,6 +120,9 @@ class Parser(private val tokens: List<Token>) {
 
         return expr
     }
+
+    private fun logicOr()  = binary(::Logical, ::logicAnd, OR)
+    private fun logicAnd() = binary(::Logical, ::ternary, AND)
 
     private fun ternary(): Expression {
         var expr = equality()
@@ -129,18 +137,22 @@ class Parser(private val tokens: List<Token>) {
         return expr
     }
 
-    private fun equality()   = binary(::comparison, EQUAL_EQUAL, BANG_EQUAL)
-    private fun comparison() = binary(::term,       GREATER, GREATER_EQUAL, LESS, LESS_EQUAL)
-    private fun term()       = binary(::factor,     PLUS, MINUS)
-    private fun factor()     = binary(::unary,      SLASH, STAR)
+    private fun equality()   = binary(::Binary, ::comparison, EQUAL_EQUAL, BANG_EQUAL)
+    private fun comparison() = binary(::Binary, ::term,       GREATER, GREATER_EQUAL, LESS, LESS_EQUAL)
+    private fun term()       = binary(::Binary, ::factor,     PLUS, MINUS)
+    private fun factor()     = binary(::Binary, ::unary,      SLASH, STAR)
 
-    private fun binary(higherPrecedence: () -> Expression, vararg operators: TokenType): Expression {
+    private fun binary(
+        creatpr: (Expression, Token, Expression) -> Expression,
+        higherPrecedence: () -> Expression,
+        vararg operators: TokenType
+    ): Expression {
         var expr = higherPrecedence()
 
         while (advanceIf(*operators)) {
             val operator = previous()
             val right = higherPrecedence()
-            expr = Expression.Binary(expr, operator, right)
+            expr = creatpr(expr, operator, right)
         }
         return expr
     }
@@ -173,7 +185,7 @@ class Parser(private val tokens: List<Token>) {
 
 
     private fun `check if there's a binary operator missing left-hand side`() {
-        if (advanceIf(EQUAL_EQUAL, BANG_EQUAL, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL, PLUS, SLASH, STAR)) {
+        if (advanceIf(EQUAL_EQUAL, BANG_EQUAL, GREATER, GREATER_EQUAL, LESS, LESS_EQUAL, PLUS, SLASH, STAR, OR, AND)) {
             val operator = previous()
             throw error("Missing left-hand side", operator)
         }

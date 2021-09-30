@@ -4,7 +4,7 @@ class Environment(private val parent: Environment? = null) {
     private val stuff = mutableMapOf<String, Any?>()
 
     fun get(name: Token): Any? {
-        if (stuff.containsKey(name.lexeme)) return stuff[name.lexeme]
+        if (stuff.containsKey(name.lexeme)) return stuff[name.lexeme] ?: Token.NoLiteral
         return parent?.get(name) ?: throw RuntimeError(name, "Variable ${name.lexeme} is undefined")
     }
 

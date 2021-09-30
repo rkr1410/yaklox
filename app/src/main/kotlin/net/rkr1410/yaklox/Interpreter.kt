@@ -43,6 +43,7 @@ class Interpreter {
 
     private fun evaluate(expr: Expression, env: Environment): Any? {
         return when (expr) {
+            is Expression.Logical  -> evalLogical(expr, env)
             is Expression.Binary   -> evalBinary(expr, env)
             is Expression.Grouping -> evalGrouping(expr, env)
             is Expression.Unary    -> evalUnary(expr, env)
@@ -65,13 +66,21 @@ class Interpreter {
 
     private fun evalUnary(expr: Expression.Unary, env: Environment): Any? {
         val value = evaluate(expr.right, env)
-        return when (expr.operator.type) {
+        return when (val operatorType = expr.operator.type) {
             MINUS -> when (value) {
                 is Double -> -value
                 else      -> throw error("Unary - (minus) not supported for operand type: ${value.typeOrNil()}")
             }
             BANG  -> !value.isTruthy()
-            else -> null
+            else -> throw error("Unary operator $operatorType not supported")
+        }
+    }
+
+    private fun evalLogical(expr: Expression.Logical, env: Environment): Any? {
+        return when (val operatorType = expr.operator.type) {
+            OR -> evaluate(expr.left, env).isTruthy() or evaluate(expr.right, env).isTruthy()
+            AND -> evaluate(expr.left, env).isTruthy() and evaluate(expr.right, env).isTruthy()
+            else -> throw error("Logical operator $operatorType not supported")
         }
     }
 
@@ -116,8 +125,10 @@ class Interpreter {
     private fun Any?.toStringOrNil() = this?.toString() ?: "nil"
     private fun Any?.typeOrNil() = this?.javaClass?.toString()?.substringAfterLast(".") ?: "nil"
     private fun Any?.isTruthy(): Boolean {
-        if (this is Boolean) return this
-        return this != null
+        return when (this) {
+            is Boolean -> return this
+            else -> this != null && this != Token.NoLiteral
+        }
     }
     private fun error(token: Token, message: String) = RuntimeError(token, message)
 }

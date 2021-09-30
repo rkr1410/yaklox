@@ -1,5 +1,6 @@
 var a = 1;
+var b = nil;
+var c;
 {
-    var a = a + 2;
-    if (a / 3 == 1) print ">1";
+    if (b) print "is not nil"; else print "is nil";
 }
