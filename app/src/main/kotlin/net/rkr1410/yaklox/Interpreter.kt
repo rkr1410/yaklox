@@ -23,8 +23,13 @@ class Interpreter {
             is Statement.Var   -> declareVariable(stmt.name, stmt.initializer, env)
             is Statement.Block -> executeBlock(stmt.statements, env)
             is Statement.If    -> executeIf(stmt.condition, stmt.thenBranch, stmt.elseBranch, env)
+            is Statement.While -> executeWhile(stmt.condition, stmt.statement, env)
             else               -> throw RuntimeException("Unknown statement type ${stmt.javaClass}")
         }
+    }
+
+    private fun executeWhile(cond: Expression, stmt: Statement, env: Environment) {
+        while (evaluate(cond, env).isTruthy()) execute(stmt, env);
     }
 
     private fun executeIf(cond: Expression, thenBranch: Statement, elseBranch: Statement?, env: Environment) {

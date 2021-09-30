@@ -25,7 +25,6 @@ class Yak {
         }
 
         fun runCode(code: String) {
-            println("------------ source --------\n$code\n------------  end   --------\n")
             // scan
             src = code
             val scanner = Scanner(code)

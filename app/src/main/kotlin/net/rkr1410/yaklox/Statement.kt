@@ -24,5 +24,10 @@ abstract class Statement {
         val condition: Expression,
         val thenBranch: Statement,
         val elseBranch: Statement?
+    ): Statement() 
+
+    data class While(
+        val condition: Expression,
+        val statement: Statement
     ): Statement()
 }

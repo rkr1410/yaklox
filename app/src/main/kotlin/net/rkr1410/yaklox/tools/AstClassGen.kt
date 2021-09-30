@@ -49,7 +49,8 @@ fun main() {
         "Print = expr: Expression",
         "Var   = name: Token, initializer: Expression?",
         "Block = statements: List<Statement>",
-        "If    = condition: Expression, thenBranch: Statement, elseBranch: Statement?"
+        "If    = condition: Expression, thenBranch: Statement, elseBranch: Statement?",
+        "While = condition: Expression, statement: Statement"
     ))
     AstClassGen(dir, "Expression").generateAst(listOf(
         "Assign   = name: Token, value: Expression",
