@@ -12,33 +12,43 @@ class Interpreter {
         }
     }
 
-    private fun execute(program: List<Statement>, env: Environment) {
-        for (stmt in program) execute(stmt, env)
+    private fun execute(program: List<Statement>, env: Environment): Any? {
+        for (stmt in program) {
+            val sideEffect = execute(stmt, env)
+            if (sideEffect is Token && sideEffect.type in arrayOf(BREAK, CONTINUE)) {
+                return sideEffect
+            }
+        }
+        return null
     }
 
-    private fun execute(stmt: Statement, env: Environment) {
-        when (stmt) {
-            is Statement.Print -> println(evaluate(stmt.expr, env))
-            is Statement.Expr  -> evaluate(stmt.expr, env)
-            is Statement.Var   -> declareVariable(stmt.name, stmt.initializer, env)
-            is Statement.Block -> executeBlock(stmt.statements, env)
-            is Statement.If    -> executeIf(stmt.condition, stmt.thenBranch, stmt.elseBranch, env)
-            is Statement.While -> executeWhile(stmt.condition, stmt.statement, env)
-            else               -> throw RuntimeException("Unknown statement type ${stmt.javaClass}")
+    private fun execute(stmt: Statement, env: Environment): Any? {
+        return when (stmt) {
+            is Statement.Print      -> println(evaluate(stmt.expr, env))
+            is Statement.Expr       -> evaluate(stmt.expr, env)
+            is Statement.Var        -> declareVariable(stmt.name, stmt.initializer, env)
+            is Statement.Block      -> executeBlock(stmt.statements, env)
+            is Statement.If         -> executeIf(stmt.condition, stmt.thenBranch, stmt.elseBranch, env)
+            is Statement.While      -> executeWhile(stmt.condition, stmt.statement, env)
+            is Statement.FlowChange -> stmt.flowToken
+            else                    -> throw RuntimeException("Unknown statement type ${stmt.javaClass}")
         }
     }
 
     private fun executeWhile(cond: Expression, stmt: Statement, env: Environment) {
-        while (evaluate(cond, env).isTruthy()) execute(stmt, env);
+        while (evaluate(cond, env).isTruthy()) {
+            val sideEffect = execute(stmt, env)
+            if (sideEffect is Token && sideEffect.type == BREAK) return
+        }
     }
 
-    private fun executeIf(cond: Expression, thenBranch: Statement, elseBranch: Statement?, env: Environment) {
+    private fun executeIf(cond: Expression, thenBranch: Statement, elseBranch: Statement?, env: Environment) =
         if (evaluate(cond, env).isTruthy()) execute(thenBranch, env) else elseBranch?.run { execute(elseBranch, env) }
-    }
 
-    private fun executeBlock(statements: List<Statement>, env: Environment) {
+
+    private fun executeBlock(statements: List<Statement>, env: Environment): Any? {
         val blockEnv = Environment(env)
-        execute(statements, blockEnv)
+        return execute(statements, blockEnv)
     }
 
     private fun declareVariable(name: Token, initializer: Expression?, env: Environment) {

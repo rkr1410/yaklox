@@ -45,12 +45,13 @@ fun main() {
     val dir = "app/src/main/kotlin/net/rkr1410/yaklox/"
     //val dir = "/Users/pafau/tmp/"
     AstClassGen(dir, "Statement").generateAst(listOf(
-        "Expr  = expr: Expression",
-        "Print = expr: Expression",
-        "Var   = name: Token, initializer: Expression?",
-        "Block = statements: List<Statement>",
-        "If    = condition: Expression, thenBranch: Statement, elseBranch: Statement?",
-        "While = condition: Expression, statement: Statement"
+        "Expr        = expr: Expression",
+        "Print       = expr: Expression",
+        "Var         = name: Token, initializer: Expression?",
+        "Block       = statements: List<Statement>",
+        "If          = condition: Expression, thenBranch: Statement, elseBranch: Statement?",
+        "While       = condition: Expression, statement: Statement",
+        "FlowChange  = flowToken: Token"
     ))
     AstClassGen(dir, "Expression").generateAst(listOf(
         "Assign   = name: Token, value: Expression",

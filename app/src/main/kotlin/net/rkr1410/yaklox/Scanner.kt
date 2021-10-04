@@ -133,6 +133,8 @@ class Scanner(private val source: String) {
             "var" to VAR,
             "while" to WHILE,
             "print" to PRINT,
+            "break" to BREAK,
+            "continue" to CONTINUE,
         )
 
         fun tokenTypeForLexeme(literal: String) = keywords.getOrDefault(literal, IDENTIFIER)

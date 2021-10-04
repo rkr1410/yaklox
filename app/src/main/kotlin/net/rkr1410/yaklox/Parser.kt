@@ -6,26 +6,27 @@ import net.rkr1410.yaklox.TokenType.*
 
 /*
 
-    program      → declaration* EOF ;
-    declaration  → varDecl | statement ;
-    varDecl      → "var" IDENTIFIER ( '=' expression )? ";" ;
-    statement    → exprStmt | ifStmt | printStmt | block | whileStmt ;
-    whileStmt    → "while" "(" expression ")" statement
-    ifStmt       → "if" "(" expression ")" statement ( "else" statement )?
-    exprStmt     → expression ";" ;
-    printStmt    → "print" expression ";" ;
-    block        → "{" declaration* "}" ;
-    expression   → assignment ;
-    assignment   → IDENTIFIER "=" assignment | logic_or ;
-    logic_or     → logic_and ( "or" logic_and )*;
-    logic_and    → ternary ( "and" ternary )* ;
-    ternary      → equality ? equality : equality ;
-    equality     → comparison ( ( "!=" | "==" ) comparison )* ;
-    comparison   → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
-    term         → factor ( ( "-" | "+" ) factor )* ;
-    factor       → unary ( ( "/" | "*" ) unary )* ;
-    unary        → ( ("!" | "-") unary ) | primary ;
-    primary      → NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" | IDENTIFIER;
+    program        → declaration* EOF ;
+    declaration    → varDecl | statement ;
+    varDecl        → "var" IDENTIFIER ( '=' expression )? ";" ;
+    statement      → exprStmt | ifStmt | printStmt | block | whileStmt | flowChangeStmt;
+    flowChangeStmt → BREAK | CONTINUE ;
+    whileStmt      → "while" "(" expression ")" statement
+    ifStmt         → "if" "(" expression ")" statement ( "else" statement )?
+    exprStmt       → expression ";" ;
+    printStmt      → "print" expression ";" ;
+    block          → "{" declaration* "}" ;
+    expression     → assignment ;
+    assignment     → IDENTIFIER "=" assignment | logic_or ;
+    logic_or       → logic_and ( "or" logic_and )*;
+    logic_and      → ternary ( "and" ternary )* ;
+    ternary        → equality ? equality : equality ;
+    equality       → comparison ( ( "!=" | "==" ) comparison )* ;
+    comparison     → term ( ( ">" | ">=" | "<" | "<=" ) term )* ;
+    term           → factor ( ( "-" | "+" ) factor )* ;
+    factor         → unary ( ( "/" | "*" ) unary )* ;
+    unary          → ( ("!" | "-") unary ) | primary ;
+    primary        → NUMBER | STRING | "true" | "false" | "nil" | "(" expression ")" | IDENTIFIER;
  */
 
 class Parser(private val tokens: List<Token>) {
@@ -69,8 +70,16 @@ class Parser(private val tokens: List<Token>) {
         if (advanceIf(LEFT_BRACE)) return block()
         if (advanceIf(IF)) return ifStatement()
         if (advanceIf(WHILE)) return whileStatement()
+        if (advanceIf(BREAK, CONTINUE)) return breakStatement()
 
         return expressionStatement()
+    }
+
+    private fun breakStatement(): Statement.FlowChange {
+        val fcToken = previous()
+        require("Expected ;", SEMICOLON)
+
+        return Statement.FlowChange(fcToken)
     }
 
     private fun whileStatement(): Statement.While {

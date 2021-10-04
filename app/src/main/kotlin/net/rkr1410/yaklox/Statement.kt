@@ -29,5 +29,9 @@ abstract class Statement {
     data class While(
         val condition: Expression,
         val statement: Statement
+    ): Statement() 
+
+    data class FlowChange(
+        val flowToken: Token
     ): Statement()
 }
